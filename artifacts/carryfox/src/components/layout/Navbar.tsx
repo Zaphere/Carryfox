@@ -1,7 +1,9 @@
 import { Link, useLocation } from "wouter";
-import { Truck, MapPin, Calculator, BarChart3, Settings, Menu, X, ArrowRight } from "lucide-react";
+import { MapPin, Calculator, BarChart3, Settings, Menu, X, ArrowRight } from "lucide-react";
+import { Truck } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import logoImg from "/carryfox-logo-transparent.png";
 
 export default function Navbar() {
   const [location] = useLocation();
@@ -19,14 +21,12 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-background/80 backdrop-blur-xl">
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex h-20 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2" data-testid="link-home">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Truck className="h-6 w-6" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-bold tracking-tight text-white leading-none">CARRYFOX</span>
-              <span className="text-[10px] uppercase tracking-widest text-primary font-semibold leading-none mt-1">Austrian Logistics</span>
-            </div>
+          <Link href="/" className="flex items-center" data-testid="link-home">
+            <img
+              src={logoImg}
+              alt="Carryfox.at"
+              className="h-14 w-auto rounded-lg px-2 py-1 bg-white/95"
+            />
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
