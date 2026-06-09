@@ -6,6 +6,7 @@ import { z } from "zod";
 import { ArrowRight, ArrowLeft, Check, Truck, Package, Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { useCreateQuote } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
@@ -235,14 +236,30 @@ export default function Quote() {
                         <FormField control={form.control} name="pickupAddress" render={({ field }) => (
                           <FormItem className="col-span-2">
                             <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">Pickup Address</FormLabel>
-                            <FormControl><Input placeholder="e.g. Mariahilfer Str. 45, 1060 Wien" {...field} className="bg-card border-white/20" data-testid="input-pickup" /></FormControl>
+                            <FormControl>
+                              <AddressAutocomplete
+                                value={field.value}
+                                onChange={field.onChange}
+                                placeholder="Start typing pickup address…"
+                                className="bg-card border-white/20"
+                                data-testid="input-pickup"
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
                         <FormField control={form.control} name="destinationAddress" render={({ field }) => (
                           <FormItem className="col-span-2">
                             <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">Destination Address</FormLabel>
-                            <FormControl><Input placeholder="e.g. Praterstr. 15, 1020 Wien" {...field} className="bg-card border-white/20" data-testid="input-destination" /></FormControl>
+                            <FormControl>
+                              <AddressAutocomplete
+                                value={field.value}
+                                onChange={field.onChange}
+                                placeholder="Start typing destination address…"
+                                className="bg-card border-white/20"
+                                data-testid="input-destination"
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
