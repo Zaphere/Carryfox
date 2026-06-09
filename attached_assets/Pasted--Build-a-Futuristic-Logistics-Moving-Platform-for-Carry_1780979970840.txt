@@ -1,0 +1,505 @@
+# Build a Futuristic Logistics & Moving Platform for Carryfox.at
+
+Create a FULL production-ready web platform for a modern Austrian moving and logistics company called Carryfox.at.
+
+Brand slogan:
+“Foxy Moves, Zero Stress.”
+
+This is NOT a static website.
+The platform must feel alive, kinetic, premium, and logistics-focused — like vehicles, cargo, movement, route systems, and real-time operations are constantly happening.
+
+The experience should feel like:
+
+* Uber + Tesla + DHL + Linear + Apple
+* Animated logistics control center
+* Premium startup aesthetic
+* Smooth futuristic motion systems
+* Dark mode by default
+* High-end modern SaaS UI
+* Immersive movement and transition effects
+
+The site should immediately communicate:
+SPEED.
+PRECISION.
+MOVEMENT.
+TRUST.
+MODERN LOGISTICS.
+
+---
+
+# TECH STACK (MANDATORY)
+
+Use:
+
+* React (latest)
+* Vite
+* TailwindCSS
+* Framer Motion
+* React Router
+* Zustand or Context API
+* GSAP for cinematic animations where necessary
+* Mapbox OR Google Maps API
+* Supabase backend
+* Recharts for analytics
+* Lucide React icons
+* Lenis smooth scrolling
+* Three.js OR Spline integrations for futuristic visuals
+* Mobile-first architecture
+* Fully responsive
+* PWA ready
+
+Use clean scalable architecture:
+
+* /components
+* /pages
+* /layouts
+* /features
+* /hooks
+* /services
+* /store
+* /animations
+* /api
+
+---
+
+# DESIGN LANGUAGE
+
+The UI must feel futuristic and premium.
+
+Color palette:
+
+* Orange (#ff6b00)
+* Black (#050505)
+* White
+* Metallic gray accents
+* Soft glassmorphism
+* Neon glow highlights
+* Motion blur effects
+* Dynamic gradients
+
+Use:
+
+* Grid-based layouts
+* 8pt spacing system
+* Smooth parallax
+* Hover physics
+* Animated cards
+* Vehicle movement animations
+* Real-time counters
+* Scroll-triggered reveals
+* Cinematic transitions
+
+NO generic template feeling.
+
+The website should feel custom-built and startup-funded.
+
+---
+
+# CORE WEBSITE SECTIONS
+
+## 1. Hero Section
+
+Create a cinematic animated hero section.
+
+Features:
+
+* Animated 3D moving truck/van
+* Roads/routes animating in background
+* Floating logistics UI elements
+* Live shipment tracker preview
+* Motion typography
+* Particle effects
+* Dynamic moving gradients
+
+Headline:
+“Modern Moving & Logistics Across Austria.”
+
+Subheadline:
+“Residential moves, commercial relocation, storage, and real-time logistics tracking.”
+
+CTA buttons:
+
+* Get Instant Quote
+* Track Vehicle
+* Book Move
+
+Background should subtly animate continuously.
+
+---
+
+# 2. REAL-TIME VEHICLE TRACKING SYSTEM (IMPORTANT)
+
+This is one of the MOST IMPORTANT features.
+
+Build a realistic logistics tracking system.
+
+Features:
+
+* Live vehicle map
+* Animated vehicle icons moving along routes
+* Route visualization
+* ETA calculations
+* Status timeline
+
+Tracking states:
+
+1. Booking Confirmed
+2. Crew Assigned
+3. Vehicle Loading
+4. On Route
+5. Traffic Delay Detection
+6. Arriving Soon
+7. Delivery Complete
+
+Tracking panel should show:
+
+* Vehicle ID
+* Driver name
+* Estimated arrival time
+* Live route progress
+* Distance remaining
+* Weather conditions
+* Current speed
+* Customer contact button
+
+Include:
+
+* Simulated realtime updates
+* WebSocket-ready architecture
+* Fake API service for demo
+* Progress animations
+* Pulsing live indicators
+
+Make this feel like:
+Uber Eats tracking + Tesla dashboard + DHL logistics center.
+
+---
+
+# 3. SMART QUOTE SYSTEM
+
+Build an advanced moving quote calculator.
+
+Inputs:
+
+* Apartment size
+* Number of rooms
+* Pickup location
+* Destination
+* Elevator availability
+* Floor number
+* Storage needed
+* Packing services
+* Furniture assembly
+* Urgency level
+
+Features:
+
+* Dynamic pricing updates
+* Estimated truck size
+* Suggested crew size
+* Animated cost calculation
+* Instant quote summary
+* Save quote feature
+* Booking conversion flow
+
+Make the calculator visually engaging and animated.
+
+---
+
+# 4. SERVICES SECTION
+
+Create modern animated service cards.
+
+Services:
+
+* Apartment Moves
+* Student Relocation
+* Office Relocation
+* Storage Solutions
+* Furniture Transport
+* Building Clearances
+* Packing Services
+* Warehouse Logistics
+
+Each card should:
+
+* Animate on hover
+* Have moving visual elements
+* Include mini dashboards
+* Use glowing gradients
+* Feel interactive
+
+---
+
+# 5. LIVE OPERATIONS DASHBOARD
+
+Create a logistics operations dashboard section.
+
+Features:
+
+* Active vehicles
+* Deliveries today
+* Average ETA
+* Fleet status
+* Customer satisfaction score
+* Real-time route animations
+* Heatmaps
+* Moving activity graphs
+
+This should feel like a futuristic logistics command center.
+
+---
+
+# 6. BEFORE & AFTER PROJECT GALLERY
+
+Create:
+
+* Interactive sliders
+* Time-lapse effects
+* Animated transitions
+* Customer stories
+* Real move showcases
+
+Use:
+
+* Smooth image transitions
+* Motion galleries
+* Masonry layout
+
+---
+
+# 7. CUSTOMER EXPERIENCE FEATURES
+
+Include:
+
+* AI chat assistant
+* Instant callback request
+* WhatsApp integration
+* Multi-language support
+  (German + English)
+
+Add:
+
+* Sticky booking CTA
+* Floating support button
+* Real-time support status
+
+---
+
+# 8. TRUST & SOCIAL PROOF
+
+Include:
+
+* Animated reviews
+* Real statistics
+* Company certifications
+* Partner logos
+* Review counters
+* Fleet metrics
+
+Metrics examples:
+
+* 2,500+ successful moves
+* 98% customer satisfaction
+* 24/7 logistics support
+* 150+ commercial clients
+
+Animate counters when scrolling.
+
+---
+
+# 9. BOOKING FLOW
+
+Build a complete booking system.
+
+Features:
+
+* Multi-step animated booking form
+* Date picker
+* Vehicle selection
+* Live availability
+* Payment integration placeholder
+* Booking confirmation animation
+
+Must feel seamless and premium.
+
+---
+
+# 10. ADMIN PANEL (IMPORTANT)
+
+Create a secure admin dashboard.
+
+Features:
+
+* Booking management
+* Fleet tracking
+* Customer management
+* Quote management
+* Route management
+* Driver status
+* Analytics
+* Revenue dashboard
+* Notifications
+
+Use:
+
+* Modern SaaS dashboard design
+* Sidebar navigation
+* Charts and metrics
+* Live map widgets
+
+---
+
+# 11. ANIMATIONS & MOTION SYSTEM
+
+The site MUST feel constantly alive.
+
+Add:
+
+* Smooth scrolling
+* Animated section transitions
+* Motion blur
+* Scroll-based animations
+* Vehicle movement loops
+* Dynamic loading states
+* Hover animations
+* Route animations
+* Interactive cursor effects
+* Magnetic buttons
+
+Animations should be:
+
+* Premium
+* Smooth
+* Fast
+* Not laggy
+
+Performance optimized.
+
+---
+
+# 12. MOBILE EXPERIENCE
+
+Mobile version must feel app-like.
+
+Include:
+
+* Bottom navigation
+* Swipe interactions
+* Sticky CTAs
+* Full-screen tracking
+* Smooth touch gestures
+
+Must feel like:
+A premium logistics mobile app.
+
+---
+
+# 13. SEO + PERFORMANCE
+
+Optimize:
+
+* Lighthouse score
+* SEO structure
+* Fast loading
+* Lazy loading
+* Dynamic imports
+* Metadata
+* Structured data
+* Austria-focused SEO
+
+Keywords:
+
+* Umzugsfirma Österreich
+* Umzug Wien
+* Lagerung Österreich
+* Büroübersiedlung
+* Möbeltransport
+
+---
+
+# 14. EXTRA PREMIUM FEATURES
+
+Add futuristic extras:
+
+* Route simulation animation
+* AI-generated logistics suggestions
+* Smart relocation tips
+* Weather-aware ETA system
+* Traffic simulation
+* Interactive Austria service map
+* Live fleet availability
+* Vehicle maintenance indicators
+* Carbon-saving tracker
+
+---
+
+# 15. HOMEPAGE EXPERIENCE GOAL
+
+The homepage should feel like:
+“A futuristic moving company operating in real time.”
+
+The user should feel:
+
+* confidence
+* speed
+* precision
+* premium quality
+* technological superiority
+
+NOT:
+
+* a boring corporate site
+* a generic moving company template
+
+---
+
+# 16. DEMO DATA
+
+Generate realistic:
+
+* Drivers
+* Vehicles
+* Routes
+* Customer bookings
+* Tracking data
+* ETA simulations
+* Operational analytics
+
+Use Austrian cities:
+
+* Vienna
+* Graz
+* Salzburg
+* Linz
+* Innsbruck
+
+---
+
+# 17. FINAL REQUIREMENTS
+
+Generate:
+
+* Fully functional frontend
+* Backend structure
+* Component architecture
+* Responsive layouts
+* Dummy APIs
+* State management
+* Reusable components
+* Production-ready UI
+
+Code quality must be:
+
+* Clean
+* Modular
+* Maintainable
+* Scalable
+
+NO placeholder-looking design.
+NO generic Bootstrap styling.
+NO static sections.
+NO boring layouts.
+
+The platform should feel like:
+“The future of logistics and moving in Austria.”

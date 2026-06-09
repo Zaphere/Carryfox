@@ -1,0 +1,56 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "ob_atGUFGJNIpUrSKAFVM"
+uri = "file://artifacts/carryfox/public/images/hero-bg.png"
+type = "image"
+title = "Hero background"
+
+[[generated]]
+id = "w4WYS_4JOLlDqIt-5WuM9"
+uri = "file://artifacts/carryfox/public/images/service-apartment.png"
+type = "image"
+title = "Apartment moves"
+
+[[generated]]
+id = "oKTV1Rx4hEYXBiA9YF2Gk"
+uri = "file://artifacts/carryfox/public/images/service-student.png"
+type = "image"
+title = "Student relocation"
+
+[[generated]]
+id = "o6Dq4V0CzYYPFUv6I1x1p"
+uri = "file://artifacts/carryfox/public/images/service-office.png"
+type = "image"
+title = "Office relocation"
+
+[[generated]]
+id = "WZeudjhH-YPdpIkLq8btK"
+uri = "file://artifacts/carryfox/public/images/service-storage.png"
+type = "image"
+title = "Storage solutions"
+
+[[generated]]
+id = "pdBezlfAOoaPrWdbL7hW1"
+uri = "file://artifacts/carryfox/public/images/service-furniture.png"
+type = "image"
+title = "Furniture transport"
+
+[[generated]]
+id = "Qkw8l94HfutVefaTU-36C"
+uri = "file://artifacts/carryfox/public/images/service-clearance.png"
+type = "image"
+title = "Building clearances"
+
+[[generated]]
+id = "24tZW1xbicOLDJv0pEP84"
+uri = "file://artifacts/carryfox/public/images/service-packing.png"
+type = "image"
+title = "Packing services"
+
+[[generated]]
+id = "ELXD_pyJtlb4KT_DEeUx4"
+uri = "file://artifacts/carryfox/public/images/service-warehouse.png"
+type = "image"
+title = "Warehouse logistics"
