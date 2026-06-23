@@ -3,7 +3,7 @@ import { MapPin, Calculator, BarChart3, Settings, Menu, X, ArrowRight } from "lu
 import { Truck } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import logoImg from "/carryfox-logo-transparent.png";
+import logoImg from "/logo.png";
 import { useT } from "@/lib/i18n";
 
 export default function Navbar() {
@@ -27,7 +27,7 @@ export default function Navbar() {
             <img
               src={logoImg}
               alt="Carryfox.at"
-              className="h-14 w-auto rounded-lg px-2 py-1 bg-white/95"
+              className="h-14 w-auto"
             />
           </Link>
 
