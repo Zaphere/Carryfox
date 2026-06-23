@@ -132,9 +132,6 @@ export default function Home() {
         {/* Animated particles */}
         <Particles count={50} />
 
-        {/* Scan line */}
-        <ScanLine />
-
         {/* Animated horizontal grid lines */}
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-10">
           {[15, 30, 50, 70, 85].map(y => (
