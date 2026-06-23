@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,6 +11,7 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { useCreateQuote } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
+import { useT } from "@/lib/i18n";
 
 const schema = z.object({
   customerName: z.string().min(2, "Name required"),
@@ -33,11 +34,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const APARTMENT_SIZES = ["studio", "1br", "2br", "3br", "4br+"];
-const URGENCY = [
-  { key: "standard", label: "Standard", desc: "3-5 days notice", multiplier: 1 },
-  { key: "express", label: "Express", desc: "24-48h notice", multiplier: 1.3 },
-  { key: "emergency", label: "Emergency", desc: "Same day", multiplier: 1.6 },
-];
+const URGENCY_KEYS = ["standard", "express", "emergency"];
 
 function estimatePrice(d: Partial<FormData>) {
   let base = 200;
@@ -64,6 +61,8 @@ export default function Quote() {
   const [quoteId, setQuoteId] = useState<number | null>(null);
   const { toast } = useToast();
   const createQuote = useCreateQuote();
+  const { t } = useT();
+  const q = t.quote;
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -90,8 +89,7 @@ export default function Quote() {
   const price = estimatePrice(values);
   const truck = getTruck(values.rooms ?? 1);
   const crew = (values.rooms ?? 1) >= 4 ? 4 : (values.rooms ?? 1) >= 2 ? 3 : 2;
-
-  const steps = ["Move Details", "Extras & Urgency", "Your Info"];
+  const stepLabels = q.stepLabels;
 
   const next = async () => {
     let valid = false;
@@ -102,13 +100,13 @@ export default function Quote() {
     } else {
       valid = await form.trigger(["customerName", "customerEmail", "customerPhone"]);
     }
-    if (valid) setStep(s => Math.min(steps.length - 1, s + 1));
+    if (valid) setStep(s => Math.min(stepLabels.length - 1, s + 1));
   };
 
   const onSubmit = form.handleSubmit(async (data) => {
     createQuote.mutate({ data }, {
-      onSuccess: (q) => {
-        setQuoteId(q.id);
+      onSuccess: (res) => {
+        setQuoteId(res.id);
         setSubmitted(true);
       },
       onError: () => {
@@ -133,15 +131,15 @@ export default function Quote() {
           >
             <Check className="h-12 w-12 text-primary" />
           </motion.div>
-          <h2 className="text-4xl font-black uppercase tracking-tighter mb-3">Quote #{quoteId} Sent!</h2>
-          <p className="text-muted-foreground mb-2 text-lg">Estimated price: <span className="text-primary font-bold">€{price}</span></p>
-          <p className="text-muted-foreground mb-8">We'll contact you within 30 minutes to confirm your booking.</p>
+          <h2 className="text-4xl font-black uppercase tracking-tighter mb-3">{q.quoteRef} #{quoteId}</h2>
+          <p className="text-muted-foreground mb-2 text-lg">{q.totalEstimate}: <span className="text-primary font-bold">€{price}</span></p>
+          <p className="text-muted-foreground mb-8">{q.successSub}</p>
           <div className="flex gap-4 justify-center">
             <Link href="/book">
-              <Button size="lg" data-testid="button-post-quote-book">Book Now <ArrowRight className="ml-2 h-4 w-4" /></Button>
+              <Button size="lg" data-testid="button-post-quote-book">{q.bookNow} <ArrowRight className="ml-2 h-4 w-4" /></Button>
             </Link>
             <Link href="/">
-              <Button size="lg" variant="outline" className="border-white/20">Back to Home</Button>
+              <Button size="lg" variant="outline" className="border-white/20">{q.backHome}</Button>
             </Link>
           </div>
         </motion.div>
@@ -153,10 +151,14 @@ export default function Quote() {
     <div className="min-h-screen bg-background py-12 px-4 md:px-6">
       <div className="container mx-auto max-w-5xl">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-sm text-primary mb-4">
+            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+            {q.badge}
+          </div>
           <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tighter text-white mb-3">
-            Smart Quote<br /><span className="text-primary">Calculator.</span>
+            {q.h1a}<br /><span className="text-primary">{q.h1b}</span>
           </h1>
-          <p className="text-muted-foreground text-lg">Get a precise estimate in under 60 seconds.</p>
+          <p className="text-muted-foreground text-lg">{q.sub}</p>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -164,19 +166,19 @@ export default function Quote() {
           <div className="lg:col-span-2">
             {/* Step indicators */}
             <div className="flex items-center gap-2 mb-8">
-              {steps.map((s, i) => (
+              {stepLabels.map((s, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <button
                     onClick={() => i < step && setStep(i)}
-                    className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${i === step ? "bg-primary text-white" : i < step ? "bg-primary/30 text-primary" : "bg-white/10 text-white/40"}`}
+                    className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${i === step ? "bg-primary text-white" : i < step ? "bg-primary/30 text-primary cursor-pointer" : "bg-white/10 text-white/40"}`}
                     data-testid={`step-indicator-${i}`}
                   >
                     {i < step ? <Check className="h-4 w-4" /> : i + 1}
                   </button>
-                  {i < steps.length - 1 && <div className={`h-px w-8 md:w-16 ${i < step ? "bg-primary/50" : "bg-white/10"}`} />}
+                  {i < stepLabels.length - 1 && <div className={`h-px w-8 md:w-16 ${i < step ? "bg-primary/50" : "bg-white/10"}`} />}
                 </div>
               ))}
-              <span className="ml-4 text-sm text-muted-foreground">{steps[step]}</span>
+              <span className="ml-4 text-sm text-muted-foreground">{stepLabels[step]}</span>
             </div>
 
             <Form {...form}>
@@ -186,7 +188,7 @@ export default function Quote() {
                     <motion.div key="step0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
                       <div className="grid grid-cols-2 gap-3">
                         <div className="col-span-2">
-                          <label className="text-sm text-muted-foreground uppercase tracking-wider mb-3 block">Apartment Size</label>
+                          <label className="text-sm text-muted-foreground uppercase tracking-wider mb-3 block">{q.apartmentSize}</label>
                           <div className="flex gap-2 flex-wrap">
                             {APARTMENT_SIZES.map(sz => (
                               <button
@@ -203,21 +205,21 @@ export default function Quote() {
                         </div>
                         <FormField control={form.control} name="rooms" render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">Rooms</FormLabel>
+                            <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{q.rooms}</FormLabel>
                             <FormControl><Input type="number" min={1} max={20} {...field} className="bg-card border-white/20" data-testid="input-rooms" /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
                         <FormField control={form.control} name="floorPickup" render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">Pickup Floor</FormLabel>
+                            <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{q.pickupFloor}</FormLabel>
                             <FormControl><Input type="number" min={0} max={50} {...field} className="bg-card border-white/20" data-testid="input-floor-pickup" /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
                         <FormField control={form.control} name="floorDestination" render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">Destination Floor</FormLabel>
+                            <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{q.destinationFloor}</FormLabel>
                             <FormControl><Input type="number" min={0} max={50} {...field} className="bg-card border-white/20" data-testid="input-floor-dest" /></FormControl>
                             <FormMessage />
                           </FormItem>
@@ -231,16 +233,16 @@ export default function Quote() {
                             className="h-4 w-4 accent-primary"
                             data-testid="checkbox-elevator"
                           />
-                          <label htmlFor="elevator" className="text-sm text-white cursor-pointer">Elevator available</label>
+                          <label htmlFor="elevator" className="text-sm text-white cursor-pointer">{q.elevator}</label>
                         </div>
                         <FormField control={form.control} name="pickupAddress" render={({ field }) => (
                           <FormItem className="col-span-2">
-                            <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">Pickup Address</FormLabel>
+                            <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{q.pickupAddress}</FormLabel>
                             <FormControl>
                               <AddressAutocomplete
                                 value={field.value}
                                 onChange={field.onChange}
-                                placeholder="Start typing pickup address…"
+                                placeholder="z.B. Mariahilfer Str. 45, 1060 Wien"
                                 className="bg-card border-white/20"
                                 data-testid="input-pickup"
                               />
@@ -250,12 +252,12 @@ export default function Quote() {
                         )} />
                         <FormField control={form.control} name="destinationAddress" render={({ field }) => (
                           <FormItem className="col-span-2">
-                            <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">Destination Address</FormLabel>
+                            <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{q.destinationAddress}</FormLabel>
                             <FormControl>
                               <AddressAutocomplete
                                 value={field.value}
                                 onChange={field.onChange}
-                                placeholder="Start typing destination address…"
+                                placeholder="z.B. Praterstr. 15, 1020 Wien"
                                 className="bg-card border-white/20"
                                 data-testid="input-destination"
                               />
@@ -273,9 +275,9 @@ export default function Quote() {
                         <label className="text-sm text-muted-foreground uppercase tracking-wider mb-3 block">Extra Services</label>
                         <div className="space-y-3">
                           {[
-                            { key: "needsPacking", label: "Packing Service", desc: "+€120" },
-                            { key: "needsAssembly", label: "Furniture Assembly", desc: "+€80" },
-                            { key: "needsStorage", label: "Storage Needed", desc: "+€150" },
+                            { key: "needsPacking",  label: q.needsPacking,  desc: "+€120" },
+                            { key: "needsAssembly", label: q.needsAssembly, desc: "+€80" },
+                            { key: "needsStorage",  label: q.needsStorage,  desc: "+€150" },
                           ].map(opt => (
                             <label
                               key={opt.key}
@@ -297,26 +299,29 @@ export default function Quote() {
                         </div>
                       </div>
                       <div>
-                        <label className="text-sm text-muted-foreground uppercase tracking-wider mb-3 block">Urgency Level</label>
+                        <label className="text-sm text-muted-foreground uppercase tracking-wider mb-3 block">{q.urgency}</label>
                         <div className="grid grid-cols-3 gap-3">
-                          {URGENCY.map(u => (
-                            <button
-                              key={u.key}
-                              type="button"
-                              onClick={() => form.setValue("urgencyLevel", u.key)}
-                              className={`rounded-lg border p-4 text-left transition-all ${values.urgencyLevel === u.key ? "border-primary bg-primary/20" : "border-white/10 bg-card hover:border-white/20"}`}
-                              data-testid={`button-urgency-${u.key}`}
-                            >
-                              <p className={`font-bold text-sm mb-1 ${values.urgencyLevel === u.key ? "text-primary" : "text-white"}`}>{u.label}</p>
-                              <p className="text-xs text-muted-foreground">{u.desc}</p>
-                            </button>
-                          ))}
+                          {URGENCY_KEYS.map((key, idx) => {
+                            const opt = q.urgencyOpts[idx];
+                            return (
+                              <button
+                                key={key}
+                                type="button"
+                                onClick={() => form.setValue("urgencyLevel", key)}
+                                className={`rounded-lg border p-4 text-left transition-all ${values.urgencyLevel === key ? "border-primary bg-primary/20" : "border-white/10 bg-card hover:border-white/20"}`}
+                                data-testid={`button-urgency-${key}`}
+                              >
+                                <p className={`font-bold text-sm mb-1 ${values.urgencyLevel === key ? "text-primary" : "text-white"}`}>{opt.label}</p>
+                                <p className="text-xs text-muted-foreground">{opt.desc}</p>
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                       <FormField control={form.control} name="notes" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">Notes (optional)</FormLabel>
-                          <FormControl><Input placeholder="Special instructions..." {...field} className="bg-card border-white/20" data-testid="input-notes" /></FormControl>
+                          <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{q.notes}</FormLabel>
+                          <FormControl><Input placeholder={q.notesPlaceholder} {...field} className="bg-card border-white/20" data-testid="input-notes" /></FormControl>
                         </FormItem>
                       )} />
                     </motion.div>
@@ -326,21 +331,21 @@ export default function Quote() {
                     <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
                       <FormField control={form.control} name="customerName" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">Full Name</FormLabel>
+                          <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{q.fullName}</FormLabel>
                           <FormControl><Input placeholder="Max Mustermann" {...field} className="bg-card border-white/20" data-testid="input-name" /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
                       <FormField control={form.control} name="customerEmail" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">Email</FormLabel>
+                          <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{q.email}</FormLabel>
                           <FormControl><Input type="email" placeholder="max@email.at" {...field} className="bg-card border-white/20" data-testid="input-email" /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
                       <FormField control={form.control} name="customerPhone" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">Phone</FormLabel>
+                          <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{q.phone}</FormLabel>
                           <FormControl><Input type="tel" placeholder="+43 676 123 4567" {...field} className="bg-card border-white/20" data-testid="input-phone" /></FormControl>
                           <FormMessage />
                         </FormItem>
@@ -352,16 +357,16 @@ export default function Quote() {
                 <div className="flex gap-3 mt-8">
                   {step > 0 && (
                     <Button type="button" variant="outline" className="border-white/20" onClick={() => setStep(s => s - 1)} data-testid="button-prev-step">
-                      <ArrowLeft className="h-4 w-4 mr-2" /> Back
+                      <ArrowLeft className="h-4 w-4 mr-2" /> {q.back}
                     </Button>
                   )}
                   {step < 2 ? (
                     <Button type="button" onClick={next} className="flex-1" data-testid="button-next-step">
-                      Continue <ArrowRight className="ml-2 h-4 w-4" />
+                      {q.next} <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   ) : (
                     <Button type="submit" className="flex-1 shadow-[0_0_20px_rgba(255,90,0,0.3)] hover:shadow-[0_0_40px_rgba(255,90,0,0.5)]" disabled={createQuote.isPending} data-testid="button-submit-quote">
-                      {createQuote.isPending ? "Submitting..." : "Get My Quote"} <ArrowRight className="ml-2 h-4 w-4" />
+                      {createQuote.isPending ? q.submitting : q.submitBtn} <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   )}
                 </div>
@@ -376,7 +381,7 @@ export default function Quote() {
               animate={{ borderColor: ["rgba(255,100,0,0.3)", "rgba(255,100,0,0.6)", "rgba(255,100,0,0.3)"] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Live Estimate</p>
+              <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">{q.liveEstimate}</p>
               <motion.p
                 key={price}
                 initial={{ scale: 1.1, color: "#ff6400" }}
@@ -385,27 +390,27 @@ export default function Quote() {
               >
                 €{price}
               </motion.p>
-              <p className="text-xs text-muted-foreground mb-6">Final price confirmed after booking</p>
+              <p className="text-xs text-muted-foreground mb-6">{q.finalNote}</p>
 
               <div className="space-y-4 border-t border-white/10 pt-4">
                 <div className="flex items-center gap-3">
                   <Truck className="h-5 w-5 text-primary" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Vehicle</p>
+                    <p className="text-xs text-muted-foreground">{q.vehicle}</p>
                     <p className="text-sm font-semibold text-white">{truck.icon} {truck.label}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Users className="h-5 w-5 text-primary" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Crew Size</p>
-                    <p className="text-sm font-semibold text-white">{crew} professionals</p>
+                    <p className="text-xs text-muted-foreground">{q.crewSize}</p>
+                    <p className="text-sm font-semibold text-white">{crew} {q.professionals}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Clock className="h-5 w-5 text-primary" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Urgency</p>
+                    <p className="text-xs text-muted-foreground">{q.urgencyLabel}</p>
                     <p className="text-sm font-semibold text-white capitalize">{values.urgencyLevel}</p>
                   </div>
                 </div>
@@ -415,7 +420,7 @@ export default function Quote() {
                     <div>
                       <p className="text-xs text-muted-foreground">Add-ons</p>
                       <p className="text-sm font-semibold text-white">
-                        {[values.needsPacking && "Packing", values.needsAssembly && "Assembly", values.needsStorage && "Storage"].filter(Boolean).join(", ")}
+                        {[values.needsPacking && q.needsPacking, values.needsAssembly && q.needsAssembly, values.needsStorage && q.needsStorage].filter(Boolean).join(", ")}
                       </p>
                     </div>
                   </div>

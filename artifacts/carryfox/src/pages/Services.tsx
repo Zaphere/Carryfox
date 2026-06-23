@@ -4,6 +4,7 @@ import { ArrowRight, Check } from "lucide-react";
 import { Home, GraduationCap, Building2, Warehouse, Armchair, Trash2, Package, Factory } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useListServices } from "@workspace/api-client-react";
+import { useT } from "@/lib/i18n";
 
 const iconMap: Record<string, React.ReactNode> = {
   Home: <Home className="h-8 w-8" />,
@@ -27,10 +28,12 @@ const cardVariants = {
 
 export default function Services() {
   const { data: services, isLoading } = useListServices();
+  const { t } = useT();
+  const s = t.services;
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
+      {/* Header with photo background */}
       <section className="relative h-[52vh] min-h-[400px] flex items-end overflow-hidden border-b border-white/10">
         <div className="absolute inset-0 z-0">
           <img
@@ -46,15 +49,13 @@ export default function Services() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-sm text-primary mb-6 backdrop-blur-sm">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-              FULL SERVICE FLEET
+              {s.badge}
             </div>
             <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter text-white mb-4">
-              Every Mission.<br />
-              <span className="text-primary">Covered.</span>
+              {s.h1a}<br />
+              <span className="text-primary">{s.h1b}</span>
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl">
-              From student studio moves to multi-floor corporate relocations — Carryfox deploys the right vehicle, crew, and precision for every job.
-            </p>
+            <p className="text-xl text-muted-foreground max-w-2xl">{s.sub}</p>
           </motion.div>
         </div>
       </section>
@@ -82,7 +83,6 @@ export default function Services() {
                   className="group relative rounded-xl border border-white/10 bg-card p-6 flex flex-col gap-4 cursor-pointer overflow-hidden"
                   data-testid={`card-service-${service.id}`}
                 >
-                  {/* Glow on hover */}
                   <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-primary/10 via-transparent to-transparent pointer-events-none" />
                   <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
@@ -92,7 +92,7 @@ export default function Services() {
                     </div>
                     <span className="text-2xl font-black text-primary">
                       €{service.basePrice}
-                      <span className="text-sm font-normal text-muted-foreground">/from</span>
+                      <span className="text-sm font-normal text-muted-foreground">{s.fromLabel}</span>
                     </span>
                   </div>
 
@@ -117,7 +117,7 @@ export default function Services() {
 
                   <Link href="/quote">
                     <Button className="w-full group/btn mt-auto" data-testid={`button-book-service-${service.id}`}>
-                      Get Quote
+                      {t.nav.quote}
                       <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
                     </Button>
                   </Link>
@@ -140,11 +140,11 @@ export default function Services() {
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/40" />
         </div>
         <div className="container relative z-10 mx-auto max-w-6xl text-center">
-          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4">Not Sure Which Service?</h2>
-          <p className="text-muted-foreground mb-8 text-lg">Our smart quote calculator picks the right package for your move.</p>
+          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4">{s.ctaH2}</h2>
+          <p className="text-muted-foreground mb-8 text-lg">{s.ctaSub}</p>
           <Link href="/quote">
             <Button size="lg" className="h-14 px-10 text-lg font-bold uppercase tracking-wider shadow-[0_0_30px_rgba(255,90,0,0.3)] hover:shadow-[0_0_50px_rgba(255,90,0,0.5)] transition-all">
-              Calculate My Quote <ArrowRight className="ml-2 h-5 w-5" />
+              {s.ctaBtn} <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
         </div>

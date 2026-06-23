@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { useGetTracking, useListActiveTracking } from "@workspace/api-client-react";
 import { getGetTrackingQueryKey, getListActiveTrackingQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useT } from "@/lib/i18n";
 
 /* ─── Leaflet icon fix (Vite strips asset URLs) ─── */
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -85,25 +86,12 @@ function MapController({ lat, lng }: { lat: number; lng: number }) {
   return null;
 }
 
-/* ─── Status list ─── */
-const STATUSES = [
-  { key: "confirmed", label: "Booking Confirmed" },
-  { key: "crew_assigned", label: "Crew Assigned" },
-  { key: "loading", label: "Vehicle Loading" },
-  { key: "on_route", label: "On Route" },
-  { key: "arriving", label: "Arriving Soon" },
-  { key: "completed", label: "Delivery Complete" },
-];
+const STATUS_KEYS = ["confirmed", "crew_assigned", "loading", "on_route", "arriving", "completed"];
 
 /* ─── Geocode an address via Nominatim ─── */
 async function geocode(address: string): Promise<[number, number] | null> {
   try {
-    const params = new URLSearchParams({
-      q: address,
-      format: "json",
-      countrycodes: "at",
-      limit: "1",
-    });
+    const params = new URLSearchParams({ q: address, format: "json", countrycodes: "at", limit: "1" });
     const r = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
       headers: { "User-Agent": "Carryfox.at/1.0" },
     });
@@ -121,29 +109,26 @@ export default function Track() {
   const [pickupCoords, setPickupCoords] = useState<[number, number] | null>(null);
   const [destCoords, setDestCoords] = useState<[number, number] | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const { t } = useT();
+  const tr = t.track;
+
+  const STATUSES = STATUS_KEYS.map((key, i) => ({ key, label: tr.statusLabels[i] }));
 
   const { data: activeShipments } = useListActiveTracking();
-
   const { data: tracking, isLoading, error, refetch } = useGetTracking(
     bookingId ?? 0,
-    {
-      query: {
-        enabled: !!bookingId,
-        queryKey: getGetTrackingQueryKey(bookingId ?? 0),
-        refetchInterval: 6000,
-      },
-    }
+    { query: { enabled: !!bookingId, queryKey: getGetTrackingQueryKey(bookingId ?? 0), refetchInterval: 6000 } }
   );
 
   /* Live refresh ticker */
   useEffect(() => {
     if (!tracking) return;
-    const t = setInterval(() => {
+    const interval = setInterval(() => {
       refetch();
       queryClient.invalidateQueries({ queryKey: getListActiveTrackingQueryKey() });
       setLastRefresh(new Date());
     }, 6000);
-    return () => clearInterval(t);
+    return () => clearInterval(interval);
   }, [tracking, refetch, queryClient]);
 
   /* Geocode addresses when tracking loads */
@@ -166,16 +151,9 @@ export default function Track() {
   }, []);
 
   const currentStatusIdx = STATUSES.findIndex(s => s.key === tracking?.status);
-  const truckPos: [number, number] | null = tracking
-    ? [tracking.currentLat, tracking.currentLng]
-    : null;
+  const truckPos: [number, number] | null = tracking ? [tracking.currentLat, tracking.currentLng] : null;
 
-  /* Polyline: pickup → truck → dest (only include resolved coords) */
-  const routeLine: [number, number][] = [
-    pickupCoords,
-    truckPos,
-    destCoords,
-  ].filter(Boolean) as [number, number][];
+  const routeLine: [number, number][] = [pickupCoords, truckPos, destCoords].filter(Boolean) as [number, number][];
 
   return (
     <div className="min-h-screen bg-background">
@@ -185,14 +163,12 @@ export default function Track() {
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-sm text-primary mb-4">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-              REAL-TIME TRACKING
+              {tr.badge}
             </div>
             <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tighter text-white mb-3">
-              Track Your<br /><span className="text-primary">Shipment.</span>
+              {tr.h1a}<br /><span className="text-primary">{tr.h1b}</span>
             </h1>
-            <p className="text-muted-foreground text-lg max-w-xl">
-              Live vehicle position updated every 6 seconds. Enter your booking ID or click an active shipment below.
-            </p>
+            <p className="text-muted-foreground text-lg max-w-xl">{tr.sub}</p>
           </motion.div>
 
           {/* Search */}
@@ -203,7 +179,7 @@ export default function Track() {
             className="flex gap-3 mt-6 max-w-md"
           >
             <Input
-              placeholder="Booking ID (e.g. 1)"
+              placeholder={tr.searchPlaceholder}
               value={inputVal}
               onChange={e => setInputVal(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleSearch()}
@@ -217,22 +193,25 @@ export default function Track() {
 
           {/* Active shipments */}
           {activeShipments && activeShipments.length > 0 && (
-            <div className="mt-4 flex gap-2 flex-wrap">
-              {activeShipments.map(s => (
-                <button
-                  key={s.bookingId}
-                  onClick={() => handleSelectShipment(s.bookingId)}
-                  className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition-all ${
-                    bookingId === s.bookingId
-                      ? "border-primary bg-primary/20 text-primary"
-                      : "border-primary/20 bg-primary/5 text-primary/70 hover:bg-primary/15 hover:text-primary"
-                  }`}
-                  data-testid={`button-active-shipment-${s.bookingId}`}
-                >
-                  <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
-                  #{s.bookingId} · {s.status.replace(/_/g, " ")}
-                </button>
-              ))}
+            <div className="mt-4">
+              <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">{tr.activeLabel}</p>
+              <div className="flex gap-2 flex-wrap">
+                {activeShipments.map(s => (
+                  <button
+                    key={s.bookingId}
+                    onClick={() => handleSelectShipment(s.bookingId)}
+                    className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition-all ${
+                      bookingId === s.bookingId
+                        ? "border-primary bg-primary/20 text-primary"
+                        : "border-primary/20 bg-primary/5 text-primary/70 hover:bg-primary/15 hover:text-primary"
+                    }`}
+                    data-testid={`button-active-shipment-${s.bookingId}`}
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
+                    #{s.bookingId} · {s.status.replace(/_/g, " ")}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -245,7 +224,7 @@ export default function Track() {
           {isLoading && (
             <div className="flex items-center justify-center gap-3 py-32 text-muted-foreground">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              Fetching tracking data…
+              {tr.loading}
             </div>
           )}
 
@@ -262,7 +241,7 @@ export default function Track() {
               className="py-24 text-center border border-white/10 rounded-2xl bg-card/40"
             >
               <Truck className="h-20 w-20 text-primary/20 mx-auto mb-4" />
-              <p className="text-muted-foreground text-lg">Select an active shipment above or enter a booking ID to start tracking.</p>
+              <p className="text-muted-foreground text-lg">{tr.noBooking}</p>
             </motion.div>
           )}
 
@@ -285,25 +264,15 @@ export default function Track() {
                       zoomControl={true}
                       attributionControl={false}
                     >
-                      {/* Dark tile layer */}
                       <TileLayer
                         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                         subdomains="abcd"
                         maxZoom={20}
                       />
-
-                      {/* Auto-pan to truck */}
                       <MapController lat={truckPos[0]} lng={truckPos[1]} />
-
-                      {/* Route polyline */}
                       {routeLine.length >= 2 && (
                         <>
-                          {/* Background glow */}
-                          <Polyline
-                            positions={routeLine}
-                            pathOptions={{ color: "#ff6400", weight: 8, opacity: 0.15 }}
-                          />
-                          {/* Main line */}
+                          <Polyline positions={routeLine} pathOptions={{ color: "#ff6400", weight: 8, opacity: 0.15 }} />
                           <Polyline
                             positions={routeLine}
                             pathOptions={{
@@ -315,28 +284,22 @@ export default function Track() {
                           />
                         </>
                       )}
-
-                      {/* Pickup marker */}
                       {pickupCoords && (
                         <Marker position={pickupCoords} icon={pickupIcon}>
-                          <Popup className="dark-popup">
-                            <div className="text-sm font-semibold">📦 Pickup</div>
+                          <Popup>
+                            <div className="text-sm font-semibold">📦 {tr.mapLegend.pickup}</div>
                             <div className="text-xs text-gray-600 mt-0.5">{tracking.pickupAddress}</div>
                           </Popup>
                         </Marker>
                       )}
-
-                      {/* Destination marker */}
                       {destCoords && (
                         <Marker position={destCoords} icon={destIcon}>
                           <Popup>
-                            <div className="text-sm font-semibold">🏁 Destination</div>
+                            <div className="text-sm font-semibold">🏁 {tr.mapLegend.destination}</div>
                             <div className="text-xs text-gray-600 mt-0.5">{tracking.destinationAddress}</div>
                           </Popup>
                         </Marker>
                       )}
-
-                      {/* Truck marker */}
                       <Marker position={truckPos} icon={truckIcon}>
                         <Popup>
                           <div className="text-sm font-semibold">🚛 {tracking.driverName}</div>
@@ -350,25 +313,25 @@ export default function Track() {
                   <div className="flex items-center justify-between flex-wrap gap-3 text-xs text-muted-foreground px-1">
                     <div className="flex items-center gap-4">
                       <span className="flex items-center gap-1.5">
-                        <span className="h-3 w-3 rounded-full bg-green-500" /> Pickup
+                        <span className="h-3 w-3 rounded-full bg-green-500" /> {tr.mapLegend.pickup}
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <span className="h-3 w-3 rounded-full bg-primary" /> Destination
+                        <span className="h-3 w-3 rounded-full bg-primary" /> {tr.mapLegend.destination}
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <span className="h-3 w-3 rounded-full bg-primary animate-pulse" /> Live Truck
+                        <span className="h-3 w-3 rounded-full bg-primary animate-pulse" /> {tr.mapLegend.truck}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <RefreshCw className="h-3 w-3 animate-spin text-primary/50" />
-                      Updated {lastRefresh.toLocaleTimeString()}
+                      {tr.liveUpdate} {lastRefresh.toLocaleTimeString()}
                     </div>
                   </div>
 
                   {/* Route Progress Bar */}
                   <div className="rounded-xl border border-white/10 bg-card p-5">
                     <div className="flex justify-between items-center mb-3">
-                      <span className="text-sm uppercase tracking-wider text-muted-foreground font-medium">Route Progress</span>
+                      <span className="text-sm uppercase tracking-wider text-muted-foreground font-medium">{tr.progress}</span>
                       <span className="text-3xl font-black text-primary">{tracking.routeProgress}%</span>
                     </div>
                     <div className="h-3 rounded-full bg-white/10 overflow-hidden mb-3">
@@ -393,15 +356,13 @@ export default function Track() {
 
                   {/* Status Timeline */}
                   <div className="rounded-xl border border-white/10 bg-card p-6">
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-5">Status Timeline</h3>
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-5">{tr.timeline}</h3>
                     <div className="relative">
-                      {/* Vertical line */}
                       <div className="absolute left-[15px] top-0 bottom-0 w-px bg-white/10" />
                       <div className="space-y-5">
                         {STATUSES.map((s, i) => {
                           const done = i < currentStatusIdx;
                           const active = i === currentStatusIdx;
-                          const pending = i > currentStatusIdx;
                           return (
                             <motion.div
                               key={s.key}
@@ -421,9 +382,7 @@ export default function Track() {
                                  <Circle className="h-4 w-4 text-white/15" />}
                               </div>
                               <div className="flex-1">
-                                <span className={`text-sm font-semibold ${
-                                  active ? "text-white" : done ? "text-white/60" : "text-white/25"
-                                }`}>
+                                <span className={`text-sm font-semibold ${active ? "text-white" : done ? "text-white/60" : "text-white/25"}`}>
                                   {s.label}
                                 </span>
                               </div>
@@ -446,7 +405,7 @@ export default function Track() {
 
                   {/* Driver Card */}
                   <div className="rounded-xl border border-white/10 bg-card p-5">
-                    <p className="text-xs uppercase tracking-widest text-muted-foreground mb-4">Your Driver</p>
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground mb-4">{tr.driver}</p>
                     <div className="flex items-center gap-4 mb-5">
                       <div className="h-14 w-14 rounded-full bg-gradient-to-br from-primary/40 to-primary/10 border-2 border-primary/40 flex items-center justify-center text-primary font-black text-2xl">
                         {tracking.driverName.charAt(0)}
@@ -470,13 +429,13 @@ export default function Track() {
                     </a>
                   </div>
 
-                  {/* Live Metrics 2x2 */}
+                  {/* Live Metrics 2×2 */}
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { icon: <Clock className="h-5 w-5" />, label: "ETA", value: new Date(tracking.estimatedArrival).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
-                      { icon: <Navigation className="h-5 w-5" />, label: "Distance", value: `${tracking.distanceRemaining} km` },
-                      { icon: <Gauge className="h-5 w-5" />, label: "Speed", value: `${tracking.currentSpeed} km/h` },
-                      { icon: <Cloud className="h-5 w-5" />, label: "Weather", value: tracking.weatherCondition },
+                      { icon: <Clock className="h-5 w-5" />, label: tr.metrics.eta, value: new Date(tracking.estimatedArrival).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
+                      { icon: <Navigation className="h-5 w-5" />, label: tr.metrics.distance, value: `${tracking.distanceRemaining} km` },
+                      { icon: <Gauge className="h-5 w-5" />, label: tr.metrics.speed, value: `${tracking.currentSpeed} km/h` },
+                      { icon: <Cloud className="h-5 w-5" />, label: tr.metrics.weather, value: tracking.weatherCondition },
                     ].map(m => (
                       <div key={m.label} className="rounded-xl border border-white/10 bg-card p-4">
                         <div className="text-primary mb-2">{m.icon}</div>
@@ -497,8 +456,8 @@ export default function Track() {
                       >
                         <AlertTriangle className="h-5 w-5 text-yellow-400 shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-sm font-semibold text-yellow-300">Traffic Delay</p>
-                          <p className="text-xs text-yellow-400/70 mt-0.5">ETA has been adjusted due to congestion on the route.</p>
+                          <p className="text-sm font-semibold text-yellow-300">{tr.trafficTitle}</p>
+                          <p className="text-xs text-yellow-400/70 mt-0.5">{tr.trafficSub}</p>
                         </div>
                       </motion.div>
                     )}
@@ -506,21 +465,17 @@ export default function Track() {
 
                   {/* Booking info */}
                   <div className="rounded-xl border border-white/10 bg-card p-4 space-y-3">
-                    <p className="text-xs uppercase tracking-widest text-muted-foreground">Booking #{bookingId}</p>
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground">{tr.bookingRef} #{bookingId}</p>
                     <div className="space-y-2 text-sm">
                       <div className="flex items-start gap-2">
-                        <div className="h-2 w-2 rounded-full bg-green-500 mt-1.5 shrink-0" />
-                        <p className="text-white/70 text-xs leading-relaxed">{tracking.pickupAddress}</p>
+                        <MapPin className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                        <span className="text-muted-foreground text-xs">{tracking.pickupAddress}</span>
                       </div>
-                      <div className="ml-1 w-px h-3 bg-white/15" />
                       <div className="flex items-start gap-2">
-                        <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />
-                        <p className="text-white/70 text-xs leading-relaxed">{tracking.destinationAddress}</p>
+                        <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                        <span className="text-muted-foreground text-xs">{tracking.destinationAddress}</span>
                       </div>
                     </div>
-                    <p className="text-[10px] text-muted-foreground border-t border-white/10 pt-3">
-                      Live update · {lastRefresh.toLocaleTimeString()}
-                    </p>
                   </div>
                 </div>
               </motion.div>

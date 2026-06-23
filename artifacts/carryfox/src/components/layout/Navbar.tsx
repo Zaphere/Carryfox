@@ -4,17 +4,19 @@ import { Truck } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import logoImg from "/carryfox-logo-transparent.png";
+import { useT } from "@/lib/i18n";
 
 export default function Navbar() {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { t, lang, setLang } = useT();
 
   const links = [
-    { href: "/services", label: "Services", icon: <MapPin className="w-4 h-4 mr-2" /> },
-    { href: "/quote", label: "Get Quote", icon: <Calculator className="w-4 h-4 mr-2" /> },
-    { href: "/track", label: "Track Vehicle", icon: <Truck className="w-4 h-4 mr-2" /> },
-    { href: "/dashboard", label: "Dashboard", icon: <BarChart3 className="w-4 h-4 mr-2" /> },
-    { href: "/admin", label: "Admin", icon: <Settings className="w-4 h-4 mr-2" /> },
+    { href: "/services",   label: t.nav.services,   icon: <MapPin className="w-4 h-4 mr-2" /> },
+    { href: "/quote",      label: t.nav.quote,       icon: <Calculator className="w-4 h-4 mr-2" /> },
+    { href: "/track",      label: t.nav.track,       icon: <Truck className="w-4 h-4 mr-2" /> },
+    { href: "/dashboard",  label: t.nav.dashboard,   icon: <BarChart3 className="w-4 h-4 mr-2" /> },
+    { href: "/admin",      label: t.nav.admin,       icon: <Settings className="w-4 h-4 mr-2" /> },
   ];
 
   return (
@@ -31,23 +33,41 @@ export default function Navbar() {
 
           <div className="hidden md:flex items-center gap-8">
             {links.map((link) => (
-              <Link 
-                key={link.href} 
+              <Link
+                key={link.href}
                 href={link.href}
                 className={`flex items-center text-sm font-medium transition-colors hover:text-primary ${
                   location === link.href ? "text-primary" : "text-muted-foreground"
                 }`}
-                data-testid={`link-nav-${link.label.toLowerCase().replace(" ", "-")}`}
+                data-testid={`link-nav-${link.href.replace("/", "")}`}
               >
                 {link.label}
               </Link>
             ))}
           </div>
 
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
+            {/* Language toggle */}
+            <div className="flex items-center rounded-full border border-white/15 bg-white/5 p-0.5 text-xs font-bold">
+              <button
+                onClick={() => setLang("en")}
+                className={`px-3 py-1.5 rounded-full transition-all ${lang === "en" ? "bg-primary text-white" : "text-muted-foreground hover:text-white"}`}
+                data-testid="button-lang-en"
+              >
+                EN
+              </button>
+              <button
+                onClick={() => setLang("de")}
+                className={`px-3 py-1.5 rounded-full transition-all ${lang === "de" ? "bg-primary text-white" : "text-muted-foreground hover:text-white"}`}
+                data-testid="button-lang-de"
+              >
+                DE
+              </button>
+            </div>
+
             <Link href="/book">
               <Button className="font-semibold uppercase tracking-wider" data-testid="button-nav-book">
-                Book Now <ArrowRight className="ml-2 h-4 w-4" />
+                {t.nav.bookNow} <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
           </div>
@@ -78,10 +98,16 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            <div className="flex items-center gap-2 pt-2">
+              <span className="text-sm text-muted-foreground">Language:</span>
+              <button onClick={() => setLang("en")} className={`text-sm font-bold px-2 py-1 rounded ${lang === "en" ? "text-primary" : "text-muted-foreground"}`}>EN</button>
+              <span className="text-white/20">|</span>
+              <button onClick={() => setLang("de")} className={`text-sm font-bold px-2 py-1 rounded ${lang === "de" ? "text-primary" : "text-muted-foreground"}`}>DE</button>
+            </div>
             <div className="pt-4 border-t border-white/10">
               <Link href="/book" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button className="w-full font-semibold uppercase tracking-wider" size="lg">
-                  Book Now
+                  {t.nav.bookNow}
                 </Button>
               </Link>
             </div>
