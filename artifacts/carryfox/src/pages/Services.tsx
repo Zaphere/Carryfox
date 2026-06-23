@@ -31,19 +31,24 @@ export default function Services() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <section className="py-20 px-4 md:px-6 border-b border-white/10 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
-        <div className="container mx-auto max-w-6xl relative">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-sm text-primary mb-6">
+      <section className="relative h-[52vh] min-h-[400px] flex items-end overflow-hidden border-b border-white/10">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/van-mountain.png"
+            alt="Carryfox fleet on the road"
+            className="w-full h-full object-cover object-center"
+            style={{ filter: "brightness(0.45) saturate(1.1)" }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/60 to-transparent" />
+        </div>
+        <div className="container mx-auto max-w-6xl relative z-10 px-4 md:px-6 pb-14">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-sm text-primary mb-6 backdrop-blur-sm">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
               FULL SERVICE FLEET
             </div>
-            <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter text-white mb-6">
+            <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter text-white mb-4">
               Every Mission.<br />
               <span className="text-primary">Covered.</span>
             </h1>
@@ -124,9 +129,18 @@ export default function Services() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-4 md:px-6 border-t border-white/10">
-        <div className="container mx-auto max-w-6xl text-center">
-          <h2 className="text-4xl font-black uppercase tracking-tighter mb-4">Not Sure Which Service?</h2>
+      <section className="relative py-28 px-4 md:px-6 overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/van-loading.png"
+            alt="Carryfox crew at work"
+            className="w-full h-full object-cover"
+            style={{ objectPosition: "center 30%", filter: "brightness(0.25) saturate(0.9)" }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/40" />
+        </div>
+        <div className="container relative z-10 mx-auto max-w-6xl text-center">
+          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4">Not Sure Which Service?</h2>
           <p className="text-muted-foreground mb-8 text-lg">Our smart quote calculator picks the right package for your move.</p>
           <Link href="/quote">
             <Button size="lg" className="h-14 px-10 text-lg font-bold uppercase tracking-wider shadow-[0_0_30px_rgba(255,90,0,0.3)] hover:shadow-[0_0_50px_rgba(255,90,0,0.5)] transition-all">

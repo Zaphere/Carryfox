@@ -75,10 +75,10 @@ function ScanLine() {
 
 /* ── Service cards ── */
 const services = [
-  { icon: "🏠", title: "Apartment Moves", desc: "Seamless residential relocation with zero stress." },
-  { icon: "🏢", title: "Office Relocation", desc: "Minimal downtime, maximum precision for your business." },
-  { icon: "📦", title: "Premium Storage", desc: "Secure, climate-controlled facilities across Austria." },
-  { icon: "🛋️", title: "Furniture Transport", desc: "White-glove handling for your most valuable pieces." },
+  { img: "/van-loading.png", pos: "center 40%", title: "Apartment Moves", desc: "Seamless residential relocation with zero stress." },
+  { img: "/van-aerial.png",  pos: "center 35%", title: "Office Relocation", desc: "Minimal downtime, maximum precision for your business." },
+  { img: "/van-mountain.png",pos: "center 50%", title: "Premium Storage", desc: "Secure, climate-controlled facilities across Austria." },
+  { img: "/van-highway.png", pos: "center 40%", title: "Furniture Transport", desc: "White-glove handling for your most valuable pieces." },
 ];
 
 /* ── Process steps ── */
@@ -324,23 +324,32 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.12, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                whileHover={{ y: -6, scale: 1.02 }}
-                className="group relative rounded-2xl border border-white/10 bg-card p-7 overflow-hidden cursor-default"
+                whileHover={{ y: -6 }}
+                className="group relative rounded-2xl border border-white/10 overflow-hidden cursor-default aspect-[3/4]"
               >
-                {/* Hover glow */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-primary/0 group-hover:from-primary/8 group-hover:to-transparent transition-all duration-500 rounded-2xl" />
-                {/* Animated border on hover */}
-                <motion.div
-                  className="absolute inset-0 rounded-2xl border-2 border-primary/0 group-hover:border-primary/30 transition-all duration-300"
+                {/* Photo */}
+                <img
+                  src={s.img}
+                  alt={s.title}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  style={{ objectPosition: s.pos }}
                 />
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                {/* Hover tint */}
+                <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/10 transition-all duration-500" />
+                {/* Orange border glow on hover */}
+                <div className="absolute inset-0 rounded-2xl border-2 border-primary/0 group-hover:border-primary/40 transition-all duration-300" />
 
-                <div className="text-4xl mb-5">{s.icon}</div>
-                <h3 className="text-lg font-bold text-white mb-2">{s.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
-
-                {/* Arrow */}
-                <div className="mt-5 flex items-center gap-1 text-primary text-xs font-semibold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-0 group-hover:translate-x-1">
-                  Learn more <ArrowRight className="h-3 w-3" />
+                {/* Text */}
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <h3 className="text-xl font-black text-white uppercase tracking-tight mb-1">{s.title}</h3>
+                  <p className="text-sm text-gray-300 leading-relaxed opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                    {s.desc}
+                  </p>
+                  <div className="mt-3 flex items-center gap-1 text-primary text-xs font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-300 delay-75">
+                    Learn more <ArrowRight className="h-3 w-3 ml-0.5" />
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -413,32 +422,35 @@ export default function Home() {
       {/* ════════════════════════════════════════════════════
           VAN SHOWCASE STRIP
       ════════════════════════════════════════════════════ */}
-      <section className="relative h-72 overflow-hidden">
+      <section className="relative h-80 overflow-hidden">
         <motion.div
           className="absolute inset-0"
-          initial={{ scale: 1.1 }}
+          initial={{ scale: 1.08 }}
           whileInView={{ scale: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 1.2, ease: "easeOut" }}
+          transition={{ duration: 1.4, ease: "easeOut" }}
         >
           <img
-            src="/hero-van.png"
-            alt="Carryfox fleet on the road"
-            className="w-full h-full object-cover object-center"
-            style={{ objectPosition: "center 60%", filter: "brightness(0.4) saturate(0.9)" }}
+            src="/van-mountain.png"
+            alt="Carryfox van on mountain road at night"
+            className="w-full h-full object-cover"
+            style={{ objectPosition: "center 55%", filter: "brightness(0.45) saturate(1.1)" }}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/30 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/20 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
         </motion.div>
-        <div className="relative z-10 h-full flex items-center justify-center">
+        <div className="relative z-10 h-full flex items-center justify-center px-4">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
             className="text-center"
           >
-            <p className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-white">
+            <p className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-white leading-tight">
               Austria's <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400">Premier</span> Fleet.
             </p>
+            <p className="text-muted-foreground mt-3 text-lg">Professional crews. Modern vehicles. Every night.</p>
           </motion.div>
         </div>
       </section>
@@ -491,10 +503,19 @@ export default function Home() {
           CTA FINALE
       ════════════════════════════════════════════════════ */}
       <section className="py-32 relative overflow-hidden">
-        {/* Animated background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/5 to-background" />
+        {/* Photo background */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/van-highway.png"
+            alt="Carryfox van on the highway at night"
+            className="w-full h-full object-cover"
+            style={{ objectPosition: "center 40%", filter: "brightness(0.3) saturate(0.8)" }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/50" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
+        </div>
         <motion.div
-          className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-primary/8 blur-[100px] pointer-events-none"
+          className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-primary/8 blur-[100px] pointer-events-none z-10"
           animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.7, 0.4] }}
           transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
         />
