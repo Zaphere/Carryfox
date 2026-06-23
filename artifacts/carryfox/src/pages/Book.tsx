@@ -184,7 +184,33 @@ export default function Book() {
                     <FormField control={form.control} name="scheduledDate" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{b.scheduledDate}</FormLabel>
-                        <FormControl><Input type="datetime-local" {...field} className="bg-background/50 border-white/20" data-testid="input-date" /></FormControl>
+                        <FormControl>
+                          <div className="grid grid-cols-2 gap-3">
+                            <input
+                              type="date"
+                              min={new Date().toISOString().split("T")[0]}
+                              value={field.value ? field.value.split("T")[0] : ""}
+                              onChange={e => {
+                                const time = field.value?.split("T")[1] ?? "09:00";
+                                field.onChange(e.target.value ? `${e.target.value}T${time}` : "");
+                              }}
+                              className="flex h-10 w-full rounded-md border border-white/20 bg-background/50 px-3 py-2 text-sm text-white ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                              style={{ colorScheme: "dark" }}
+                              data-testid="input-date"
+                            />
+                            <input
+                              type="time"
+                              value={field.value ? (field.value.split("T")[1] ?? "09:00") : "09:00"}
+                              onChange={e => {
+                                const date = field.value?.split("T")[0] ?? "";
+                                if (date) field.onChange(`${date}T${e.target.value}`);
+                              }}
+                              className="flex h-10 w-full rounded-md border border-white/20 bg-background/50 px-3 py-2 text-sm text-white ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                              style={{ colorScheme: "dark" }}
+                              data-testid="input-time"
+                            />
+                          </div>
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
