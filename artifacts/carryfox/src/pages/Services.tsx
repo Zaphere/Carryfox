@@ -7,21 +7,20 @@ import { useListServices } from "@workspace/api-client-react";
 import { useT } from "@/lib/i18n";
 
 const iconMap: Record<string, React.ReactNode> = {
-  Home: <Home className="h-8 w-8" />,
+  Home:          <Home          className="h-8 w-8" />,
   GraduationCap: <GraduationCap className="h-8 w-8" />,
-  Building2: <Building2 className="h-8 w-8" />,
-  Warehouse: <Warehouse className="h-8 w-8" />,
-  Armchair: <Armchair className="h-8 w-8" />,
-  Trash2: <Trash2 className="h-8 w-8" />,
-  Package: <Package className="h-8 w-8" />,
-  FactoryIcon: <Factory className="h-8 w-8" />,
+  Building2:     <Building2     className="h-8 w-8" />,
+  Warehouse:     <Warehouse     className="h-8 w-8" />,
+  Armchair:      <Armchair      className="h-8 w-8" />,
+  Trash2:        <Trash2        className="h-8 w-8" />,
+  Package:       <Package       className="h-8 w-8" />,
+  FactoryIcon:   <Factory       className="h-8 w-8" />,
 };
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 30 },
+  hidden:  { opacity: 0, y: 30 },
   visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
+    opacity: 1, y: 0,
     transition: { delay: i * 0.08, duration: 0.5, ease: "easeOut" },
   }),
 };
@@ -34,7 +33,7 @@ export default function Services() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header with photo background */}
-      <section className="relative h-[52vh] min-h-[400px] flex items-end overflow-hidden border-b border-white/10">
+      <section className="relative h-[52vh] min-h-[400px] flex items-end overflow-hidden border-b border-border">
         <div className="absolute inset-0 z-0">
           <img
             src="/van-mountain.png"
@@ -55,7 +54,7 @@ export default function Services() {
               {s.h1a}<br />
               <span className="text-primary">{s.h1b}</span>
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl">{s.sub}</p>
+            <p className="text-xl text-gray-300 max-w-2xl">{s.sub}</p>
           </motion.div>
         </div>
       </section>
@@ -66,7 +65,7 @@ export default function Services() {
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="h-80 rounded-xl border border-white/10 bg-card animate-pulse" />
+                <div key={i} className="h-80 rounded-xl border border-border bg-card animate-pulse" />
               ))}
             </div>
           ) : (
@@ -80,10 +79,10 @@ export default function Services() {
                   viewport={{ once: true }}
                   variants={cardVariants}
                   whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                  className="group relative rounded-xl border border-white/10 bg-card p-6 flex flex-col gap-4 cursor-pointer overflow-hidden"
+                  className="group relative rounded-xl border border-border bg-card p-6 flex flex-col gap-4 cursor-pointer overflow-hidden shadow-sm hover:shadow-md transition-all hover:border-primary/30"
                   data-testid={`card-service-${service.id}`}
                 >
-                  <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-primary/10 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-primary/8 via-transparent to-transparent pointer-events-none" />
                   <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                   <div className="flex items-center justify-between">
@@ -97,11 +96,11 @@ export default function Services() {
                   </div>
 
                   <div>
-                    <h3 className="text-xl font-bold text-white mb-1">{service.name}</h3>
+                    <h3 className="text-xl font-bold text-foreground mb-1">{service.name}</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">{service.description}</p>
                   </div>
 
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground border-t border-white/10 pt-4">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground border-t border-border pt-4">
                     <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                     {service.estimatedDuration}
                   </div>
@@ -140,8 +139,8 @@ export default function Services() {
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/40" />
         </div>
         <div className="container relative z-10 mx-auto max-w-6xl text-center">
-          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4">{s.ctaH2}</h2>
-          <p className="text-muted-foreground mb-8 text-lg">{s.ctaSub}</p>
+          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4 text-white">{s.ctaH2}</h2>
+          <p className="text-gray-300 mb-8 text-lg">{s.ctaSub}</p>
           <Link href="/quote">
             <Button size="lg" className="h-14 px-10 text-lg font-bold uppercase tracking-wider shadow-[0_0_30px_rgba(255,90,0,0.3)] hover:shadow-[0_0_50px_rgba(255,90,0,0.5)] transition-all">
               {s.ctaBtn} <ArrowRight className="ml-2 h-5 w-5" />

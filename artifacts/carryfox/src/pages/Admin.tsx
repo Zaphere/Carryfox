@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { LayoutDashboard, CalendarCheck, FileText, Truck, Users, BarChart3, ChevronRight, Edit2, Check, X } from "lucide-react";
+import { LayoutDashboard, CalendarCheck, FileText, Truck, Users, ChevronRight, Edit2, Check, X, Euro, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useListBookings, useUpdateBooking, useListQuotes, useListDrivers, useListVehicles, useGetDashboardSummary } from "@workspace/api-client-react";
 import { getListBookingsQueryKey } from "@workspace/api-client-react";
@@ -8,41 +8,39 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
 const STATUS_OPTIONS = ["confirmed", "crew_assigned", "loading", "on_route", "arriving", "completed", "cancelled"];
+
 const STATUS_COLORS: Record<string, string> = {
-  confirmed: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  crew_assigned: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-  loading: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  on_route: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  arriving: "bg-green-500/20 text-green-400 border-green-500/30",
-  completed: "bg-gray-500/20 text-gray-400 border-gray-500/30",
-  cancelled: "bg-red-500/20 text-red-400 border-red-500/30",
+  confirmed:     "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30",
+  crew_assigned: "bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30",
+  loading:       "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/30",
+  on_route:      "bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/30",
+  arriving:      "bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30",
+  completed:     "bg-gray-500/15 text-gray-600 dark:text-gray-400 border-gray-500/30",
+  cancelled:     "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30",
 };
 
 const SERVICE_LABELS: Record<string, string> = {
   apartment_move: "Apartment Move",
-  student_move: "Student Move",
-  office_move: "Office Move",
-  storage: "Storage",
-  furniture: "Furniture",
-  clearance: "Clearance",
-  packing: "Packing",
-  warehouse: "Warehouse",
+  student_move:   "Student Move",
+  office_move:    "Office Move",
+  storage:        "Storage",
+  furniture:      "Furniture",
+  clearance:      "Clearance",
+  packing:        "Packing",
+  warehouse:      "Warehouse",
 };
 
-type Tab = "overview" | "bookings" | "quotes" | "fleet" | "drivers" | "analytics";
+type Tab = "overview" | "bookings" | "quotes" | "fleet" | "drivers";
 
 function BookingsTable() {
   const { data: bookings, isLoading } = useListBookings();
   const updateBooking = useUpdateBooking();
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const queryClient   = useQueryClient();
+  const { toast }     = useToast();
+  const [editingId, setEditingId]   = useState<number | null>(null);
   const [editStatus, setEditStatus] = useState("");
 
-  const startEdit = (id: number, status: string) => {
-    setEditingId(id);
-    setEditStatus(status);
-  };
+  const startEdit = (id: number, status: string) => { setEditingId(id); setEditStatus(status); };
 
   const saveEdit = (id: number) => {
     updateBooking.mutate({ id, data: { status: editStatus } }, {
@@ -55,13 +53,13 @@ function BookingsTable() {
     });
   };
 
-  if (isLoading) return <div className="h-40 animate-pulse bg-white/5 rounded-lg" />;
+  if (isLoading) return <div className="h-40 animate-pulse bg-muted/50 rounded-lg" />;
 
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-white/10 text-left text-xs uppercase tracking-wider text-muted-foreground">
+          <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
             <th className="pb-3 pr-4">#</th>
             <th className="pb-3 pr-4">Customer</th>
             <th className="pb-3 pr-4">Service</th>
@@ -71,12 +69,12 @@ function BookingsTable() {
             <th className="pb-3">Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/5">
+        <tbody className="divide-y divide-border/50">
           {bookings?.map(b => (
-            <tr key={b.id} className="hover:bg-white/5 transition-colors" data-testid={`admin-booking-row-${b.id}`}>
+            <tr key={b.id} className="hover:bg-muted/30 transition-colors" data-testid={`admin-booking-row-${b.id}`}>
               <td className="py-3 pr-4 font-mono text-muted-foreground">#{b.id}</td>
               <td className="py-3 pr-4">
-                <p className="font-semibold text-white">{b.customerName}</p>
+                <p className="font-semibold text-foreground">{b.customerName}</p>
                 <p className="text-xs text-muted-foreground">{b.customerEmail}</p>
               </td>
               <td className="py-3 pr-4 text-muted-foreground">{SERVICE_LABELS[b.serviceType] ?? b.serviceType}</td>
@@ -88,7 +86,7 @@ function BookingsTable() {
                   <select
                     value={editStatus}
                     onChange={e => setEditStatus(e.target.value)}
-                    className="rounded bg-card border border-white/20 text-white text-xs px-2 py-1"
+                    className="rounded-lg bg-card border border-border text-foreground text-xs px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary"
                     data-testid={`select-status-${b.id}`}
                   >
                     {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
@@ -99,12 +97,12 @@ function BookingsTable() {
                   </span>
                 )}
               </td>
-              <td className="py-3 pr-4 font-bold text-primary">€{b.totalPrice}</td>
+              <td className="py-3 pr-4 font-black text-primary">€{b.totalPrice}</td>
               <td className="py-3">
                 {editingId === b.id ? (
                   <div className="flex gap-2">
-                    <button onClick={() => saveEdit(b.id)} className="text-green-400 hover:text-green-300" data-testid={`button-save-booking-${b.id}`}><Check className="h-4 w-4" /></button>
-                    <button onClick={() => setEditingId(null)} className="text-red-400 hover:text-red-300" data-testid={`button-cancel-edit-${b.id}`}><X className="h-4 w-4" /></button>
+                    <button onClick={() => saveEdit(b.id)} className="text-green-500 hover:text-green-400 transition-colors" data-testid={`button-save-booking-${b.id}`}><Check className="h-4 w-4" /></button>
+                    <button onClick={() => setEditingId(null)} className="text-red-500 hover:text-red-400 transition-colors" data-testid={`button-cancel-edit-${b.id}`}><X className="h-4 w-4" /></button>
                   </div>
                 ) : (
                   <button onClick={() => startEdit(b.id, b.status)} className="text-muted-foreground hover:text-primary transition-colors" data-testid={`button-edit-booking-${b.id}`}>
@@ -125,12 +123,12 @@ function BookingsTable() {
 
 function QuotesTable() {
   const { data: quotes, isLoading } = useListQuotes();
-  if (isLoading) return <div className="h-40 animate-pulse bg-white/5 rounded-lg" />;
+  if (isLoading) return <div className="h-40 animate-pulse bg-muted/50 rounded-lg" />;
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-white/10 text-left text-xs uppercase tracking-wider text-muted-foreground">
+          <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
             <th className="pb-3 pr-4">#</th>
             <th className="pb-3 pr-4">Customer</th>
             <th className="pb-3 pr-4">Route</th>
@@ -139,12 +137,12 @@ function QuotesTable() {
             <th className="pb-3">Status</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/5">
+        <tbody className="divide-y divide-border/50">
           {quotes?.map(q => (
-            <tr key={q.id} className="hover:bg-white/5 transition-colors" data-testid={`admin-quote-row-${q.id}`}>
+            <tr key={q.id} className="hover:bg-muted/30 transition-colors" data-testid={`admin-quote-row-${q.id}`}>
               <td className="py-3 pr-4 font-mono text-muted-foreground">#{q.id}</td>
               <td className="py-3 pr-4">
-                <p className="font-semibold text-white">{q.customerName}</p>
+                <p className="font-semibold text-foreground">{q.customerName}</p>
                 <p className="text-xs text-muted-foreground">{q.customerEmail}</p>
               </td>
               <td className="py-3 pr-4 text-muted-foreground text-xs">
@@ -152,9 +150,9 @@ function QuotesTable() {
                 <p className="truncate max-w-[150px]">→ {q.destinationAddress}</p>
               </td>
               <td className="py-3 pr-4 text-muted-foreground capitalize">{q.apartmentSize}</td>
-              <td className="py-3 pr-4 font-bold text-primary">€{q.estimatedPrice}</td>
+              <td className="py-3 pr-4 font-black text-primary">€{q.estimatedPrice}</td>
               <td className="py-3">
-                <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[q.status] ?? "bg-gray-500/20 text-gray-400 border-gray-500/30"}`}>
+                <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[q.status] ?? "bg-muted text-muted-foreground border-border"}`}>
                   {q.status}
                 </span>
               </td>
@@ -170,17 +168,17 @@ function QuotesTable() {
 function FleetTable() {
   const { data: vehicles, isLoading } = useListVehicles();
   const VEHICLE_STATUS_COLORS: Record<string, string> = {
-    available: "text-green-400",
-    on_route: "text-orange-400",
-    maintenance: "text-yellow-400",
-    idle: "text-gray-400",
+    available:   "text-green-500",
+    on_route:    "text-orange-500",
+    maintenance: "text-yellow-500",
+    idle:        "text-muted-foreground",
   };
-  if (isLoading) return <div className="h-40 animate-pulse bg-white/5 rounded-lg" />;
+  if (isLoading) return <div className="h-40 animate-pulse bg-muted/50 rounded-lg" />;
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-white/10 text-left text-xs uppercase tracking-wider text-muted-foreground">
+          <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
             <th className="pb-3 pr-4">Plate</th>
             <th className="pb-3 pr-4">Model</th>
             <th className="pb-3 pr-4">Type</th>
@@ -190,21 +188,18 @@ function FleetTable() {
             <th className="pb-3">Status</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/5">
+        <tbody className="divide-y divide-border/50">
           {vehicles?.map(v => (
-            <tr key={v.id} className="hover:bg-white/5 transition-colors" data-testid={`admin-vehicle-row-${v.id}`}>
-              <td className="py-3 pr-4 font-mono font-bold text-white">{v.plateNumber}</td>
+            <tr key={v.id} className="hover:bg-muted/30 transition-colors" data-testid={`admin-vehicle-row-${v.id}`}>
+              <td className="py-3 pr-4 font-mono font-bold text-foreground">{v.plateNumber}</td>
               <td className="py-3 pr-4 text-muted-foreground">{v.model}</td>
               <td className="py-3 pr-4 text-muted-foreground capitalize">{v.type.replace(/_/g, " ")}</td>
               <td className="py-3 pr-4 text-muted-foreground">{v.capacity}</td>
               <td className="py-3 pr-4 text-muted-foreground">{v.currentCity}</td>
               <td className="py-3 pr-4">
                 <div className="flex items-center gap-2">
-                  <div className="h-1.5 w-16 rounded-full bg-white/10 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-primary"
-                      style={{ width: `${v.fuelLevel}%` }}
-                    />
+                  <div className="h-1.5 w-16 rounded-full bg-muted overflow-hidden">
+                    <div className="h-full rounded-full bg-primary" style={{ width: `${v.fuelLevel}%` }} />
                   </div>
                   <span className="text-xs text-muted-foreground">{v.fuelLevel}%</span>
                 </div>
@@ -223,17 +218,17 @@ function FleetTable() {
 function DriversTable() {
   const { data: drivers, isLoading } = useListDrivers();
   const DRIVER_STATUS_COLORS: Record<string, string> = {
-    available: "text-green-400",
-    on_route: "text-orange-400",
-    off_duty: "text-gray-400",
-    break: "text-yellow-400",
+    available: "text-green-500",
+    on_route:  "text-orange-500",
+    off_duty:  "text-muted-foreground",
+    break:     "text-yellow-500",
   };
-  if (isLoading) return <div className="h-40 animate-pulse bg-white/5 rounded-lg" />;
+  if (isLoading) return <div className="h-40 animate-pulse bg-muted/50 rounded-lg" />;
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-white/10 text-left text-xs uppercase tracking-wider text-muted-foreground">
+          <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
             <th className="pb-3 pr-4">Name</th>
             <th className="pb-3 pr-4">Phone</th>
             <th className="pb-3 pr-4">City</th>
@@ -242,22 +237,22 @@ function DriversTable() {
             <th className="pb-3">Status</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/5">
+        <tbody className="divide-y divide-border/50">
           {drivers?.map(d => (
-            <tr key={d.id} className="hover:bg-white/5 transition-colors" data-testid={`admin-driver-row-${d.id}`}>
+            <tr key={d.id} className="hover:bg-muted/30 transition-colors" data-testid={`admin-driver-row-${d.id}`}>
               <td className="py-3 pr-4">
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">{d.name.charAt(0)}</div>
+                  <div className="h-8 w-8 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold text-sm shrink-0">{d.name.charAt(0)}</div>
                   <div>
-                    <p className="font-semibold text-white">{d.name}</p>
+                    <p className="font-semibold text-foreground">{d.name}</p>
                     <p className="text-xs text-muted-foreground">{d.email}</p>
                   </div>
                 </div>
               </td>
               <td className="py-3 pr-4 text-muted-foreground">{d.phone}</td>
               <td className="py-3 pr-4 text-muted-foreground">{d.city}</td>
-              <td className="py-3 pr-4 text-yellow-400 font-bold">{d.rating}</td>
-              <td className="py-3 pr-4 text-white font-bold">{d.totalMoves}</td>
+              <td className="py-3 pr-4 text-yellow-500 font-bold">{d.rating}</td>
+              <td className="py-3 pr-4 text-foreground font-bold">{d.totalMoves}</td>
               <td className={`py-3 font-semibold capitalize ${DRIVER_STATUS_COLORS[d.status] ?? "text-muted-foreground"}`}>
                 {d.status.replace(/_/g, " ")}
               </td>
@@ -271,30 +266,35 @@ function DriversTable() {
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState<Tab>("bookings");
-  const { data: summary } = useGetDashboardSummary();
+  const { data: summary }         = useGetDashboardSummary();
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: "overview", label: "Overview", icon: <LayoutDashboard className="h-4 w-4" /> },
-    { id: "bookings", label: "Bookings", icon: <CalendarCheck className="h-4 w-4" /> },
-    { id: "quotes", label: "Quotes", icon: <FileText className="h-4 w-4" /> },
-    { id: "fleet", label: "Fleet", icon: <Truck className="h-4 w-4" /> },
-    { id: "drivers", label: "Drivers", icon: <Users className="h-4 w-4" /> },
+    { id: "overview",  label: "Overview",  icon: <LayoutDashboard className="h-4 w-4" /> },
+    { id: "bookings",  label: "Bookings",  icon: <CalendarCheck   className="h-4 w-4" /> },
+    { id: "quotes",    label: "Quotes",    icon: <FileText        className="h-4 w-4" /> },
+    { id: "fleet",     label: "Fleet",     icon: <Truck           className="h-4 w-4" /> },
+    { id: "drivers",   label: "Drivers",   icon: <Users           className="h-4 w-4" /> },
   ];
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
-      <aside className="w-64 shrink-0 border-r border-white/10 bg-card/50 p-6 hidden md:flex flex-col">
+
+      {/* ── Sidebar ── */}
+      <aside className="w-64 shrink-0 border-r border-border bg-card/50 p-6 hidden md:flex flex-col">
         <div className="mb-8">
           <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Control Panel</p>
-          <h2 className="text-xl font-black text-white uppercase tracking-tight">Admin</h2>
+          <h2 className="text-xl font-black text-foreground uppercase tracking-tight">Admin</h2>
         </div>
         <nav className="space-y-1 flex-1">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${activeTab === tab.id ? "bg-primary/20 text-primary" : "text-muted-foreground hover:bg-white/5 hover:text-white"}`}
+              className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
+                activeTab === tab.id
+                  ? "bg-primary/15 text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
               data-testid={`admin-tab-${tab.id}`}
             >
               {tab.icon}
@@ -303,27 +303,51 @@ export default function Admin() {
             </button>
           ))}
         </nav>
-        <div className="border-t border-white/10 pt-4">
-          <div className="rounded-lg bg-primary/10 border border-primary/20 p-3">
-            <p className="text-xs text-muted-foreground">Revenue MTD</p>
-            <p className="text-xl font-black text-primary">€{summary?.totalRevenueMTD?.toFixed(0) ?? "–"}</p>
+
+        {/* Revenue MTD sidebar widget */}
+        <div className="border-t border-border pt-4 space-y-3">
+          <div className="rounded-xl bg-primary/10 border border-primary/25 p-4">
+            <div className="flex items-center gap-2 text-primary text-xs font-semibold mb-1">
+              <Euro className="h-3.5 w-3.5" /> Revenue MTD
+            </div>
+            <p className="text-2xl font-black text-primary">
+              €{(summary?.totalRevenueMTD ?? 0).toLocaleString("de-AT", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">Excl. cancelled bookings</p>
+          </div>
+          <div className="rounded-xl bg-muted/50 border border-border p-4">
+            <div className="flex items-center gap-2 text-muted-foreground text-xs font-semibold mb-1">
+              <TrendingUp className="h-3.5 w-3.5" /> All-Time Moves
+            </div>
+            <p className="text-2xl font-black text-foreground">{(summary?.totalMovesAllTime ?? 0).toLocaleString()}</p>
           </div>
         </div>
       </aside>
 
-      {/* Main content */}
+      {/* ── Main content ── */}
       <div className="flex-1 p-6 md:p-10 overflow-x-hidden">
+
         {/* Mobile tab selector */}
         <div className="md:hidden flex gap-2 mb-6 overflow-x-auto pb-2">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition-all ${activeTab === tab.id ? "bg-primary text-white" : "bg-card text-muted-foreground border border-white/10"}`}
+              className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition-all ${
+                activeTab === tab.id ? "bg-primary text-white" : "bg-card text-muted-foreground border border-border"
+              }`}
             >
               {tab.icon} {tab.label}
             </button>
           ))}
+        </div>
+
+        {/* Revenue MTD — mobile only */}
+        <div className="md:hidden mb-4 rounded-xl bg-primary/10 border border-primary/25 p-4">
+          <p className="text-xs text-primary font-semibold uppercase tracking-wider mb-1">Revenue MTD</p>
+          <p className="text-3xl font-black text-primary">
+            €{(summary?.totalRevenueMTD ?? 0).toLocaleString("de-AT", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+          </p>
         </div>
 
         <motion.div
@@ -333,33 +357,33 @@ export default function Admin() {
           transition={{ duration: 0.3 }}
         >
           <div className="mb-6">
-            <h1 className="text-3xl font-black uppercase tracking-tighter text-white">
+            <h1 className="text-3xl font-black uppercase tracking-tighter text-foreground">
               {tabs.find(t => t.id === activeTab)?.label}
             </h1>
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-card p-6">
+          <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
             {activeTab === "overview" && (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {[
-                  { label: "Total Moves", value: summary?.totalMovesAllTime ?? 0 },
-                  { label: "Completed Today", value: summary?.completedToday ?? 0 },
-                  { label: "Pending Bookings", value: summary?.pendingBookings ?? 0 },
-                  { label: "Active Vehicles", value: summary?.activeVehicles ?? 0 },
-                  { label: "Total Drivers", value: summary?.totalDrivers ?? 0 },
-                  { label: "Avg ETA (min)", value: summary?.avgEtaMinutes ?? 0 },
+                  { label: "Total Moves",        value: summary?.totalMovesAllTime ?? 0, color: "text-primary"       },
+                  { label: "Completed Today",     value: summary?.completedToday ?? 0,    color: "text-green-500"    },
+                  { label: "Pending Bookings",    value: summary?.pendingBookings ?? 0,   color: "text-blue-500"     },
+                  { label: "Active Vehicles",     value: summary?.activeVehicles ?? 0,    color: "text-orange-500"   },
+                  { label: "Total Drivers",       value: summary?.totalDrivers ?? 0,      color: "text-purple-500"   },
+                  { label: "Avg ETA (min)",       value: summary?.avgEtaMinutes ?? 0,     color: "text-yellow-500"   },
                 ].map(m => (
-                  <div key={m.label} className="rounded-lg border border-white/10 bg-background/50 p-4">
-                    <p className="text-3xl font-black text-primary">{m.value}</p>
+                  <div key={m.label} className="rounded-xl border border-border bg-muted/30 p-4 hover:border-primary/30 transition-colors">
+                    <p className={`text-3xl font-black ${m.color}`}>{m.value}</p>
                     <p className="text-xs uppercase tracking-wide text-muted-foreground mt-1">{m.label}</p>
                   </div>
                 ))}
               </div>
             )}
             {activeTab === "bookings" && <BookingsTable />}
-            {activeTab === "quotes" && <QuotesTable />}
-            {activeTab === "fleet" && <FleetTable />}
-            {activeTab === "drivers" && <DriversTable />}
+            {activeTab === "quotes"   && <QuotesTable  />}
+            {activeTab === "fleet"    && <FleetTable   />}
+            {activeTab === "drivers"  && <DriversTable />}
           </div>
         </motion.div>
       </div>

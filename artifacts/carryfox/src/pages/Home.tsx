@@ -231,9 +231,9 @@ export default function Home() {
       </section>
 
       {/* ════ STATS ════ */}
-      <section className="relative z-20 -mt-1 bg-black/70 backdrop-blur-xl border-y border-white/10">
+      <section className="relative z-20 -mt-1 bg-card/80 backdrop-blur-xl border-y border-border">
         <div className="container mx-auto px-4 py-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0 md:divide-x divide-white/10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0 md:divide-x divide-border">
             {STATS.map((stat, i) => (
               <motion.div
                 key={i}
@@ -246,7 +246,7 @@ export default function Home() {
                 <div className="text-4xl md:text-5xl font-black text-primary">
                   <Counter to={stat.to} suffix={stat.suffix} />
                 </div>
-                <div className="text-xs uppercase tracking-widest text-gray-500">{stat.label}</div>
+                <div className="text-xs uppercase tracking-widest text-muted-foreground">{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -316,7 +316,7 @@ export default function Home() {
       </section>
 
       {/* ════ HOW IT WORKS ════ */}
-      <section className="py-28 relative overflow-hidden bg-black/40">
+      <section className="py-28 relative overflow-hidden bg-muted/30">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,100,0,0.04)_0%,transparent_70%)] pointer-events-none" />
         <div className="container mx-auto px-4 md:px-6 relative z-10">
           <motion.div
@@ -330,7 +330,7 @@ export default function Home() {
           </motion.div>
 
           <div className="relative">
-            <div className="hidden lg:block absolute top-12 left-[12.5%] right-[12.5%] h-px bg-white/10">
+            <div className="hidden lg:block absolute top-12 left-[12.5%] right-[12.5%] h-px bg-border">
               <motion.div
                 className="h-full bg-gradient-to-r from-primary to-orange-400"
                 initial={{ scaleX: 0 }}
@@ -363,7 +363,7 @@ export default function Home() {
                       transition={{ duration: 2.5, repeat: Infinity, delay: i * 0.5 }}
                     />
                   </motion.div>
-                  <h3 className="text-lg font-bold text-white mb-2">{step.title}</h3>
+                  <h3 className="text-lg font-bold text-foreground mb-2">{step.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
                 </motion.div>
               ))}
@@ -417,13 +417,13 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.15 }}
-                className="group flex gap-5 p-6 rounded-2xl border border-white/8 bg-card/50 hover:border-primary/30 hover:bg-card transition-all duration-300"
+                className="group flex gap-5 p-6 rounded-2xl border border-border bg-card/50 hover:border-primary/30 hover:bg-card transition-all duration-300"
               >
                 <div className="shrink-0 h-14 w-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
                   {USP_ICONS[i]}
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white mb-2">{usp.title}</h3>
+                  <h3 className="text-lg font-bold text-foreground mb-2">{usp.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{usp.desc}</p>
                 </div>
               </motion.div>
