@@ -6,6 +6,7 @@ import {
   GetTrackingResponse,
   ListActiveTrackingResponse,
 } from "@workspace/api-zod";
+import { requireOwner } from "../middlewares/requireOwner";
 
 const router: IRouter = Router();
 
@@ -62,7 +63,7 @@ function buildTrackingInfo(booking: typeof bookingsTable.$inferSelect, driver: t
   };
 }
 
-router.get("/tracking/active", async (_req, res): Promise<void> => {
+router.get("/tracking/active", requireOwner, async (_req, res): Promise<void> => {
   const activeStatuses = ["crew_assigned", "loading", "on_route", "arriving"];
   const bookings = await db
     .select()

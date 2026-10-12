@@ -10,8 +10,6 @@ export interface DashboardSummary {
   totalBookingsToday: number;
   activeVehicles: number;
   totalDrivers: number;
-  avgEtaMinutes: number;
-  customerSatisfaction: number;
   totalMovesAllTime: number;
   totalRevenueMTD: number;
   pendingBookings: number;

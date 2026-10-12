@@ -55,6 +55,22 @@ export interface QuoteInput {
   notes?: string;
 }
 
+export type QuoteUpdateStatus = typeof QuoteUpdateStatus[keyof typeof QuoteUpdateStatus];
+
+
+export const QuoteUpdateStatus = {
+  pending: 'pending',
+  accepted: 'accepted',
+  booked: 'booked',
+  cancelled: 'cancelled',
+} as const;
+
+export interface QuoteUpdate {
+  status?: QuoteUpdateStatus;
+  /** @nullable */
+  notes?: string | null;
+}
+
 export interface Booking {
   id: number;
   /** @nullable */
@@ -97,9 +113,12 @@ export interface BookingInput {
 export interface BookingUpdate {
   status?: string;
   scheduledDate?: string;
-  vehicleId?: number;
-  driverId?: number;
-  notes?: string;
+  /** @nullable */
+  vehicleId?: number | null;
+  /** @nullable */
+  driverId?: number | null;
+  /** @nullable */
+  notes?: string | null;
 }
 
 export interface Driver {
@@ -116,6 +135,56 @@ export interface Driver {
   /** @nullable */
   avatarUrl: string | null;
   createdAt: string;
+}
+
+export type DriverInputStatus = typeof DriverInputStatus[keyof typeof DriverInputStatus];
+
+
+export const DriverInputStatus = {
+  available: 'available',
+  on_route: 'on_route',
+  off_duty: 'off_duty',
+  break: 'break',
+} as const;
+
+export interface DriverInput {
+  /** @minLength 1 */
+  name: string;
+  /** @minLength 1 */
+  phone: string;
+  email: string;
+  /** @minLength 1 */
+  licenseNumber: string;
+  status?: DriverInputStatus;
+  /** @minLength 1 */
+  city: string;
+  /** @nullable */
+  avatarUrl?: string | null;
+}
+
+export type DriverUpdateStatus = typeof DriverUpdateStatus[keyof typeof DriverUpdateStatus];
+
+
+export const DriverUpdateStatus = {
+  available: 'available',
+  on_route: 'on_route',
+  off_duty: 'off_duty',
+  break: 'break',
+} as const;
+
+export interface DriverUpdate {
+  /** @minLength 1 */
+  name?: string;
+  /** @minLength 1 */
+  phone?: string;
+  email?: string;
+  /** @minLength 1 */
+  licenseNumber?: string;
+  status?: DriverUpdateStatus;
+  /** @minLength 1 */
+  city?: string;
+  /** @nullable */
+  avatarUrl?: string | null;
 }
 
 export interface Vehicle {
@@ -138,6 +207,96 @@ export interface Vehicle {
   mileage: number;
   lastServiceDate: string;
   createdAt: string;
+}
+
+export type VehicleInputType = typeof VehicleInputType[keyof typeof VehicleInputType];
+
+
+export const VehicleInputType = {
+  van: 'van',
+  small_truck: 'small_truck',
+  large_truck: 'large_truck',
+  xl_truck: 'xl_truck',
+} as const;
+
+export type VehicleInputStatus = typeof VehicleInputStatus[keyof typeof VehicleInputStatus];
+
+
+export const VehicleInputStatus = {
+  available: 'available',
+  on_route: 'on_route',
+  maintenance: 'maintenance',
+  idle: 'idle',
+} as const;
+
+export interface VehicleInput {
+  /** @minLength 1 */
+  plateNumber: string;
+  /** @minLength 1 */
+  model: string;
+  type: VehicleInputType;
+  /** @minLength 1 */
+  capacity: string;
+  status?: VehicleInputStatus;
+  /** @minLength 1 */
+  currentCity: string;
+  /** @nullable */
+  currentLat?: number | null;
+  /** @nullable */
+  currentLng?: number | null;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  fuelLevel?: number;
+  /** @minimum 0 */
+  mileage?: number;
+  lastServiceDate: string;
+}
+
+export type VehicleUpdateType = typeof VehicleUpdateType[keyof typeof VehicleUpdateType];
+
+
+export const VehicleUpdateType = {
+  van: 'van',
+  small_truck: 'small_truck',
+  large_truck: 'large_truck',
+  xl_truck: 'xl_truck',
+} as const;
+
+export type VehicleUpdateStatus = typeof VehicleUpdateStatus[keyof typeof VehicleUpdateStatus];
+
+
+export const VehicleUpdateStatus = {
+  available: 'available',
+  on_route: 'on_route',
+  maintenance: 'maintenance',
+  idle: 'idle',
+} as const;
+
+export interface VehicleUpdate {
+  /** @minLength 1 */
+  plateNumber?: string;
+  /** @minLength 1 */
+  model?: string;
+  type?: VehicleUpdateType;
+  /** @minLength 1 */
+  capacity?: string;
+  status?: VehicleUpdateStatus;
+  /** @minLength 1 */
+  currentCity?: string;
+  /** @nullable */
+  currentLat?: number | null;
+  /** @nullable */
+  currentLng?: number | null;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  fuelLevel?: number;
+  /** @minimum 0 */
+  mileage?: number;
+  lastServiceDate?: string;
 }
 
 export interface TrackingInfo {
@@ -178,8 +337,6 @@ export interface DashboardSummary {
   totalBookingsToday: number;
   activeVehicles: number;
   totalDrivers: number;
-  avgEtaMinutes: number;
-  customerSatisfaction: number;
   totalMovesAllTime: number;
   totalRevenueMTD: number;
   pendingBookings: number;

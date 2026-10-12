@@ -11,10 +11,11 @@ import {
   ListBookingsResponse,
   GetRecentBookingsResponse,
 } from "@workspace/api-zod";
+import { requireOwner } from "../middlewares/requireOwner";
 
 const router: IRouter = Router();
 
-router.get("/bookings", async (_req, res): Promise<void> => {
+router.get("/bookings", requireOwner, async (_req, res): Promise<void> => {
   const bookings = await db.select().from(bookingsTable).orderBy(desc(bookingsTable.createdAt));
   res.json(ListBookingsResponse.parse(bookings));
 });
@@ -30,7 +31,7 @@ router.post("/bookings", async (req, res): Promise<void> => {
   res.status(201).json(GetBookingResponse.parse(booking));
 });
 
-router.get("/bookings/:id", async (req, res): Promise<void> => {
+router.get("/bookings/:id", requireOwner, async (req, res): Promise<void> => {
   const params = GetBookingParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -46,7 +47,7 @@ router.get("/bookings/:id", async (req, res): Promise<void> => {
   res.json(GetBookingResponse.parse(booking));
 });
 
-router.patch("/bookings/:id", async (req, res): Promise<void> => {
+router.patch("/bookings/:id", requireOwner, async (req, res): Promise<void> => {
   const params = UpdateBookingParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });

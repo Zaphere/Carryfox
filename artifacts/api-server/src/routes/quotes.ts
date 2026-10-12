@@ -6,7 +6,11 @@ import {
   GetQuoteParams,
   GetQuoteResponse,
   ListQuotesResponse,
+  UpdateQuoteBody,
+  UpdateQuoteParams,
+  UpdateQuoteResponse,
 } from "@workspace/api-zod";
+import { requireOwner } from "../middlewares/requireOwner";
 
 const router: IRouter = Router();
 
@@ -42,7 +46,7 @@ function calculateQuote(data: {
   return { estimatedPrice: Math.round(base), estimatedTruckSize: truckSize, estimatedCrew: crew };
 }
 
-router.get("/quotes", async (_req, res): Promise<void> => {
+router.get("/quotes", requireOwner, async (_req, res): Promise<void> => {
   const quotes = await db.select().from(quotesTable).orderBy(desc(quotesTable.createdAt));
   res.json(ListQuotesResponse.parse(quotes));
 });
@@ -63,7 +67,7 @@ router.post("/quotes", async (req, res): Promise<void> => {
   res.status(201).json(GetQuoteResponse.parse(quote));
 });
 
-router.get("/quotes/:id", async (req, res): Promise<void> => {
+router.get("/quotes/:id", requireOwner, async (req, res): Promise<void> => {
   const params = GetQuoteParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -77,6 +81,33 @@ router.get("/quotes/:id", async (req, res): Promise<void> => {
   }
 
   res.json(GetQuoteResponse.parse(quote));
+});
+
+router.patch("/quotes/:id", requireOwner, async (req, res): Promise<void> => {
+  const params = UpdateQuoteParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const parsed = UpdateQuoteBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const [quote] = await db
+    .update(quotesTable)
+    .set(parsed.data)
+    .where(eq(quotesTable.id, params.data.id))
+    .returning();
+
+  if (!quote) {
+    res.status(404).json({ error: "Quote not found" });
+    return;
+  }
+
+  res.json(UpdateQuoteResponse.parse(quote));
 });
 
 export default router;

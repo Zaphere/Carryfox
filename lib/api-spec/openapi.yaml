@@ -90,6 +90,31 @@ paths:
                 $ref: "#/components/schemas/Quote"
         "404":
           description: Not found
+    patch:
+      operationId: updateQuote
+      tags: [quotes]
+      summary: Update quote status or notes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteUpdate"
+      responses:
+        "200":
+          description: Updated quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+        "404":
+          description: Not found
 
   # ── BOOKINGS ─────────────────────────────────────────────────────────────────
   /bookings:
@@ -183,6 +208,23 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Driver"
+    post:
+      operationId: createDriver
+      tags: [drivers]
+      summary: Add a driver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DriverInput"
+      responses:
+        "201":
+          description: Driver created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Driver"
 
   /drivers/{id}:
     get:
@@ -202,6 +244,48 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Driver"
+    patch:
+      operationId: updateDriver
+      tags: [drivers]
+      summary: Update a driver
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DriverUpdate"
+      responses:
+        "200":
+          description: Updated driver
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Driver"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteDriver
+      tags: [drivers]
+      summary: Remove a driver not assigned to a booking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Driver deleted
+        "404":
+          description: Not found
+        "409":
+          description: Driver is assigned to a booking
 
   # ── VEHICLES ─────────────────────────────────────────────────────────────────
   /vehicles:
@@ -218,6 +302,23 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Vehicle"
+    post:
+      operationId: createVehicle
+      tags: [vehicles]
+      summary: Add a vehicle to the fleet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VehicleInput"
+      responses:
+        "201":
+          description: Vehicle created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vehicle"
 
   /vehicles/{id}:
     get:
@@ -237,6 +338,48 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Vehicle"
+    patch:
+      operationId: updateVehicle
+      tags: [vehicles]
+      summary: Update a fleet vehicle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VehicleUpdate"
+      responses:
+        "200":
+          description: Updated vehicle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vehicle"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteVehicle
+      tags: [vehicles]
+      summary: Remove a vehicle not assigned to a booking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Vehicle deleted
+        "404":
+          description: Not found
+        "409":
+          description: Vehicle is assigned to a booking
 
   # ── TRACKING ─────────────────────────────────────────────────────────────────
   /tracking/{bookingId}:
@@ -442,6 +585,15 @@ components:
         notes:
           type: string
 
+    QuoteUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, accepted, booked, cancelled]
+        notes:
+          type: ["string", "null"]
+
     # ── BOOKING ───────────────────────────────────────────────────────────────
     Booking:
       type: object
@@ -521,11 +673,11 @@ components:
           type: string
           format: date-time
         vehicleId:
-          type: integer
+          type: ["integer", "null"]
         driverId:
-          type: integer
+          type: ["integer", "null"]
         notes:
-          type: string
+          type: ["string", "null"]
 
     # ── DRIVER ────────────────────────────────────────────────────────────────
     Driver:
@@ -556,6 +708,55 @@ components:
         createdAt:
           type: string
           format: date-time
+
+    DriverInput:
+      type: object
+      required: [name, phone, email, licenseNumber, city]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        phone:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        licenseNumber:
+          type: string
+          minLength: 1
+        status:
+          type: string
+          enum: [available, on_route, off_duty, break]
+        city:
+          type: string
+          minLength: 1
+        avatarUrl:
+          type: ["string", "null"]
+
+    DriverUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        phone:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        licenseNumber:
+          type: string
+          minLength: 1
+        status:
+          type: string
+          enum: [available, on_route, off_duty, break]
+        city:
+          type: string
+          minLength: 1
+        avatarUrl:
+          type: ["string", "null"]
 
     # ── VEHICLE ───────────────────────────────────────────────────────────────
     Vehicle:
@@ -594,6 +795,79 @@ components:
         createdAt:
           type: string
           format: date-time
+
+    VehicleInput:
+      type: object
+      required: [plateNumber, model, type, capacity, currentCity, lastServiceDate]
+      properties:
+        plateNumber:
+          type: string
+          minLength: 1
+        model:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum: [van, small_truck, large_truck, xl_truck]
+        capacity:
+          type: string
+          minLength: 1
+        status:
+          type: string
+          enum: [available, on_route, maintenance, idle]
+        currentCity:
+          type: string
+          minLength: 1
+        currentLat:
+          type: ["number", "null"]
+        currentLng:
+          type: ["number", "null"]
+        fuelLevel:
+          type: integer
+          minimum: 0
+          maximum: 100
+        mileage:
+          type: integer
+          minimum: 0
+        lastServiceDate:
+          type: string
+          format: date
+
+    VehicleUpdate:
+      type: object
+      properties:
+        plateNumber:
+          type: string
+          minLength: 1
+        model:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum: [van, small_truck, large_truck, xl_truck]
+        capacity:
+          type: string
+          minLength: 1
+        status:
+          type: string
+          enum: [available, on_route, maintenance, idle]
+        currentCity:
+          type: string
+          minLength: 1
+        currentLat:
+          type: ["number", "null"]
+        currentLng:
+          type: ["number", "null"]
+        fuelLevel:
+          type: integer
+          minimum: 0
+          maximum: 100
+        mileage:
+          type: integer
+          minimum: 0
+        lastServiceDate:
+          type: string
+          format: date
 
     # ── TRACKING ──────────────────────────────────────────────────────────────
     TrackingInfo:
@@ -666,7 +940,7 @@ components:
     # ── DASHBOARD ─────────────────────────────────────────────────────────────
     DashboardSummary:
       type: object
-      required: [totalBookingsToday, activeVehicles, totalDrivers, avgEtaMinutes, customerSatisfaction, totalMovesAllTime, totalRevenueMTD, pendingBookings, completedToday]
+      required: [totalBookingsToday, activeVehicles, totalDrivers, totalMovesAllTime, totalRevenueMTD, pendingBookings, completedToday]
       properties:
         totalBookingsToday:
           type: integer
@@ -674,10 +948,6 @@ components:
           type: integer
         totalDrivers:
           type: integer
-        avgEtaMinutes:
-          type: integer
-        customerSatisfaction:
-          type: number
         totalMovesAllTime:
           type: integer
         totalRevenueMTD:

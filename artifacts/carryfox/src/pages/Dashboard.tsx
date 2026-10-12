@@ -3,7 +3,7 @@ import {
   BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, Legend,
 } from "recharts";
-import { Truck, Users, Clock, Star, TrendingUp, Package, CheckCircle2, Euro, ArrowUpRight } from "lucide-react";
+import { Truck, Users, TrendingUp, Package, CheckCircle2, Euro, ArrowUpRight } from "lucide-react";
 import {
   useGetDashboardSummary, useGetFleetStatus, useGetDashboardAnalytics,
   useGetRecentBookings, useListActiveTracking,
@@ -56,9 +56,7 @@ export default function Dashboard() {
     { label: "Bookings Today",     value: summary?.totalBookingsToday ?? 0,  icon: <Package className="h-5 w-5" />, suffix: "",     color: "text-blue-400"   },
     { label: "Active Vehicles",    value: summary?.activeVehicles ?? 0,      icon: <Truck   className="h-5 w-5" />, suffix: "",     color: "text-orange-400" },
     { label: "Total Drivers",      value: summary?.totalDrivers ?? 0,        icon: <Users   className="h-5 w-5" />, suffix: "",     color: "text-purple-400" },
-    { label: "Avg ETA",            value: summary?.avgEtaMinutes ?? 0,       icon: <Clock   className="h-5 w-5" />, suffix: " min", color: "text-yellow-400" },
-    { label: "Satisfaction",       value: summary?.customerSatisfaction ?? 0,icon: <Star    className="h-5 w-5" />, suffix: "/5",   color: "text-green-400"  },
-    { label: "Total Moves",        value: summary?.totalMovesAllTime ?? 0,   icon: <TrendingUp className="h-5 w-5" />, suffix: "+", color: "text-primary"    },
+    { label: "Completed Moves",    value: summary?.totalMovesAllTime ?? 0,   icon: <TrendingUp className="h-5 w-5" />, suffix: "", color: "text-primary"    },
   ];
 
   return (
@@ -92,13 +90,13 @@ export default function Dashboard() {
           <div className="relative z-10">
             <div className="flex items-center gap-2 text-primary text-xs uppercase tracking-widest font-semibold mb-2">
               <Euro className="h-4 w-4" />
-              Revenue — Month to Date
+              Booked Value — Month to Date
             </div>
             <div className="text-6xl md:text-7xl font-black text-primary tracking-tighter">
               €{(summary?.totalRevenueMTD ?? 0).toLocaleString("de-AT", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </div>
             <p className="text-muted-foreground mt-2 text-sm">
-              From <span className="text-foreground font-semibold">{(summary?.pendingBookings ?? 0) + (summary?.completedToday ?? 0)}</span> active & completed bookings this month
+              Non-cancelled bookings created this month
             </p>
           </div>
           <div className="relative z-10 flex flex-wrap gap-4">
@@ -117,7 +115,7 @@ export default function Dashboard() {
         </motion.div>
 
         {/* ── Metric Cards Grid ── */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
           {metricCards.map((m, i) => (
             <motion.div
               key={m.label}

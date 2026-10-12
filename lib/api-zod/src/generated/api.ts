@@ -100,6 +100,43 @@ export const GetQuoteResponse = zod.object({
 
 
 /**
+ * @summary Update quote status or notes
+ */
+export const UpdateQuoteParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateQuoteBody = zod.object({
+  "status": zod.enum(['pending', 'accepted', 'booked', 'cancelled']).optional(),
+  "notes": zod.string().nullish()
+})
+
+export const UpdateQuoteResponse = zod.object({
+  "id": zod.number(),
+  "customerName": zod.string(),
+  "customerEmail": zod.string(),
+  "customerPhone": zod.string(),
+  "pickupAddress": zod.string(),
+  "destinationAddress": zod.string(),
+  "apartmentSize": zod.string().describe('e.g. studio, 1br, 2br, 3br, 4br+'),
+  "rooms": zod.number(),
+  "floorPickup": zod.number(),
+  "floorDestination": zod.number(),
+  "hasElevator": zod.boolean(),
+  "needsStorage": zod.boolean(),
+  "needsPacking": zod.boolean(),
+  "needsAssembly": zod.boolean(),
+  "urgencyLevel": zod.string().describe('standard, express, emergency'),
+  "estimatedPrice": zod.number(),
+  "estimatedTruckSize": zod.string(),
+  "estimatedCrew": zod.number(),
+  "status": zod.string().describe('pending, accepted, booked, cancelled'),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
  * @summary List all bookings
  */
 export const ListBookingsResponseItem = zod.object({
@@ -177,9 +214,9 @@ export const UpdateBookingParams = zod.object({
 export const UpdateBookingBody = zod.object({
   "status": zod.string().optional(),
   "scheduledDate": zod.coerce.date().optional(),
-  "vehicleId": zod.number().optional(),
-  "driverId": zod.number().optional(),
-  "notes": zod.string().optional()
+  "vehicleId": zod.number().nullish(),
+  "driverId": zod.number().nullish(),
+  "notes": zod.string().nullish()
 })
 
 export const UpdateBookingResponse = zod.object({
@@ -221,6 +258,26 @@ export const ListDriversResponse = zod.array(ListDriversResponseItem)
 
 
 /**
+ * @summary Add a driver
+ */
+
+
+
+
+
+
+export const CreateDriverBody = zod.object({
+  "name": zod.string().min(1),
+  "phone": zod.string().min(1),
+  "email": zod.string().email(),
+  "licenseNumber": zod.string().min(1),
+  "status": zod.enum(['available', 'on_route', 'off_duty', 'break']).optional(),
+  "city": zod.string().min(1),
+  "avatarUrl": zod.string().nullish()
+})
+
+
+/**
  * @summary Get driver by ID
  */
 export const GetDriverParams = zod.object({
@@ -239,6 +296,52 @@ export const GetDriverResponse = zod.object({
   "city": zod.string(),
   "avatarUrl": zod.string().nullable(),
   "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update a driver
+ */
+export const UpdateDriverParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+
+
+
+export const UpdateDriverBody = zod.object({
+  "name": zod.string().min(1).optional(),
+  "phone": zod.string().min(1).optional(),
+  "email": zod.string().email().optional(),
+  "licenseNumber": zod.string().min(1).optional(),
+  "status": zod.enum(['available', 'on_route', 'off_duty', 'break']).optional(),
+  "city": zod.string().min(1).optional(),
+  "avatarUrl": zod.string().nullish()
+})
+
+export const UpdateDriverResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "phone": zod.string(),
+  "email": zod.string(),
+  "licenseNumber": zod.string(),
+  "status": zod.string().describe('available, on_route, off_duty, break'),
+  "rating": zod.number(),
+  "totalMoves": zod.number(),
+  "city": zod.string(),
+  "avatarUrl": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Remove a driver not assigned to a booking
+ */
+export const DeleteDriverParams = zod.object({
+  "id": zod.coerce.number()
 })
 
 
@@ -264,6 +367,35 @@ export const ListVehiclesResponse = zod.array(ListVehiclesResponseItem)
 
 
 /**
+ * @summary Add a vehicle to the fleet
+ */
+
+
+
+
+export const createVehicleBodyFuelLevelMin = 0;
+export const createVehicleBodyFuelLevelMax = 100;
+
+export const createVehicleBodyMileageMin = 0;
+
+
+
+export const CreateVehicleBody = zod.object({
+  "plateNumber": zod.string().min(1),
+  "model": zod.string().min(1),
+  "type": zod.enum(['van', 'small_truck', 'large_truck', 'xl_truck']),
+  "capacity": zod.string().min(1),
+  "status": zod.enum(['available', 'on_route', 'maintenance', 'idle']).optional(),
+  "currentCity": zod.string().min(1),
+  "currentLat": zod.number().nullish(),
+  "currentLng": zod.number().nullish(),
+  "fuelLevel": zod.number().min(createVehicleBodyFuelLevelMin).max(createVehicleBodyFuelLevelMax).optional(),
+  "mileage": zod.number().min(createVehicleBodyMileageMin).optional(),
+  "lastServiceDate": zod.coerce.date()
+})
+
+
+/**
  * @summary Get vehicle by ID
  */
 export const GetVehicleParams = zod.object({
@@ -284,6 +416,63 @@ export const GetVehicleResponse = zod.object({
   "mileage": zod.number(),
   "lastServiceDate": zod.coerce.date(),
   "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update a fleet vehicle
+ */
+export const UpdateVehicleParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+
+export const updateVehicleBodyFuelLevelMin = 0;
+export const updateVehicleBodyFuelLevelMax = 100;
+
+export const updateVehicleBodyMileageMin = 0;
+
+
+
+export const UpdateVehicleBody = zod.object({
+  "plateNumber": zod.string().min(1).optional(),
+  "model": zod.string().min(1).optional(),
+  "type": zod.enum(['van', 'small_truck', 'large_truck', 'xl_truck']).optional(),
+  "capacity": zod.string().min(1).optional(),
+  "status": zod.enum(['available', 'on_route', 'maintenance', 'idle']).optional(),
+  "currentCity": zod.string().min(1).optional(),
+  "currentLat": zod.number().nullish(),
+  "currentLng": zod.number().nullish(),
+  "fuelLevel": zod.number().min(updateVehicleBodyFuelLevelMin).max(updateVehicleBodyFuelLevelMax).optional(),
+  "mileage": zod.number().min(updateVehicleBodyMileageMin).optional(),
+  "lastServiceDate": zod.coerce.date().optional()
+})
+
+export const UpdateVehicleResponse = zod.object({
+  "id": zod.number(),
+  "plateNumber": zod.string(),
+  "model": zod.string(),
+  "type": zod.string().describe('van, small_truck, large_truck, xl_truck'),
+  "capacity": zod.string().describe('e.g. 3.5t, 7.5t, 12t'),
+  "status": zod.string().describe('available, on_route, maintenance, idle'),
+  "currentCity": zod.string(),
+  "currentLat": zod.number().nullish(),
+  "currentLng": zod.number().nullish(),
+  "fuelLevel": zod.number().describe('0-100 percentage'),
+  "mileage": zod.number(),
+  "lastServiceDate": zod.coerce.date(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Remove a vehicle not assigned to a booking
+ */
+export const DeleteVehicleParams = zod.object({
+  "id": zod.coerce.number()
 })
 
 
@@ -361,8 +550,6 @@ export const GetDashboardSummaryResponse = zod.object({
   "totalBookingsToday": zod.number(),
   "activeVehicles": zod.number(),
   "totalDrivers": zod.number(),
-  "avgEtaMinutes": zod.number(),
-  "customerSatisfaction": zod.number(),
   "totalMovesAllTime": zod.number(),
   "totalRevenueMTD": zod.number(),
   "pendingBookings": zod.number(),

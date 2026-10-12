@@ -9,7 +9,10 @@
 export interface BookingUpdate {
   status?: string;
   scheduledDate?: Date;
-  vehicleId?: number;
-  driverId?: number;
-  notes?: string;
+  /** @nullable */
+  vehicleId?: number | null;
+  /** @nullable */
+  driverId?: number | null;
+  /** @nullable */
+  notes?: string | null;
 }

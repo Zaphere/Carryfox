@@ -7,10 +7,11 @@ import {
   GetDashboardAnalyticsResponse,
   GetRecentBookingsResponse,
 } from "@workspace/api-zod";
+import { requireOwner } from "../middlewares/requireOwner";
 
 const router: IRouter = Router();
 
-router.get("/dashboard/summary", async (_req, res): Promise<void> => {
+router.get("/dashboard/summary", requireOwner, async (_req, res): Promise<void> => {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
@@ -40,14 +41,14 @@ router.get("/dashboard/summary", async (_req, res): Promise<void> => {
   const [completedToday] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(bookingsTable)
-    .where(and(eq(bookingsTable.status, "completed"), gte(bookingsTable.createdAt, todayStart)));
+    .where(and(eq(bookingsTable.status, "completed"), gte(bookingsTable.scheduledDate, todayStart)));
 
   const [totalAll] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(bookingsTable)
     .where(eq(bookingsTable.status, "completed"));
 
-  // Revenue MTD: exclude cancelled bookings — only count revenue that was actually earned
+  // Booked value MTD: count non-cancelled bookings created this month.
   const [revMTD] = await db
     .select({ total: sql<number>`coalesce(sum(total_price), 0)::float` })
     .from(bookingsTable)
@@ -62,9 +63,7 @@ router.get("/dashboard/summary", async (_req, res): Promise<void> => {
     totalBookingsToday:   totalToday?.count ?? 0,
     activeVehicles:       activeVehicles?.count ?? 0,
     totalDrivers:         totalDrivers?.count ?? 0,
-    avgEtaMinutes:        42,
-    customerSatisfaction: 4.8,
-    totalMovesAllTime:    (totalAll?.count ?? 0) + 2500,
+    totalMovesAllTime:    totalAll?.count ?? 0,
     totalRevenueMTD:      revMTD?.total ?? 0,
     pendingBookings:      pending?.count ?? 0,
     completedToday:       completedToday?.count ?? 0,
@@ -73,7 +72,7 @@ router.get("/dashboard/summary", async (_req, res): Promise<void> => {
   res.json(GetDashboardSummaryResponse.parse(summary));
 });
 
-router.get("/dashboard/recent-bookings", async (_req, res): Promise<void> => {
+router.get("/dashboard/recent-bookings", requireOwner, async (_req, res): Promise<void> => {
   const bookings = await db
     .select()
     .from(bookingsTable)
@@ -82,7 +81,7 @@ router.get("/dashboard/recent-bookings", async (_req, res): Promise<void> => {
   res.json(GetRecentBookingsResponse.parse(bookings));
 });
 
-router.get("/dashboard/fleet-status", async (_req, res): Promise<void> => {
+router.get("/dashboard/fleet-status", requireOwner, async (_req, res): Promise<void> => {
   const [available]   = await db.select({ count: sql<number>`count(*)::int` }).from(vehiclesTable).where(eq(vehiclesTable.status, "available"));
   const [onRoute]     = await db.select({ count: sql<number>`count(*)::int` }).from(vehiclesTable).where(eq(vehiclesTable.status, "on_route"));
   const [maintenance] = await db.select({ count: sql<number>`count(*)::int` }).from(vehiclesTable).where(eq(vehiclesTable.status, "maintenance"));
@@ -98,7 +97,7 @@ router.get("/dashboard/fleet-status", async (_req, res): Promise<void> => {
   }));
 });
 
-router.get("/dashboard/analytics", async (_req, res): Promise<void> => {
+router.get("/dashboard/analytics", requireOwner, async (_req, res): Promise<void> => {
   const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const now    = new Date();
   const monthly = [];
