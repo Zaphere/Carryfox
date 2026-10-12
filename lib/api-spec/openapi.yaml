@@ -193,6 +193,170 @@ paths:
               schema:
                 $ref: "#/components/schemas/Booking"
 
+  /bookings/{id}/whatsapp-status:
+    post:
+      operationId: sendBookingWhatsAppStatus
+      tags: [whatsapp]
+      summary: Send the current booking status to the customer on WhatsApp
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: WhatsApp message accepted by Meta
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WhatsAppMessage"
+        "404":
+          description: Booking not found
+        "409":
+          description: An approved template is required because the customer service window is closed
+        "502":
+          description: WhatsApp provider rejected the message
+
+  /whatsapp/conversations:
+    get:
+      operationId: listWhatsAppConversations
+      tags: [whatsapp]
+      summary: List WhatsApp conversations for the admin inbox
+      responses:
+        "200":
+          description: WhatsApp conversation summaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WhatsAppConversation"
+
+  /whatsapp/conversations/{id}:
+    get:
+      operationId: getWhatsAppConversation
+      tags: [whatsapp]
+      summary: Get a conversation and its messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: WhatsApp conversation detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WhatsAppConversationDetail"
+        "404":
+          description: Conversation not found
+
+  /whatsapp/conversations/{id}/read:
+    patch:
+      operationId: markWhatsAppConversationRead
+      tags: [whatsapp]
+      summary: Clear unread messages in a WhatsApp conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Conversation marked as read
+        "404":
+          description: Conversation not found
+
+  /whatsapp/conversations/{id}/messages:
+    post:
+      operationId: sendWhatsAppMessage
+      tags: [whatsapp]
+      summary: Reply to a customer WhatsApp conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WhatsAppReplyInput"
+      responses:
+        "201":
+          description: WhatsApp message accepted by Meta
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WhatsAppMessage"
+        "404":
+          description: Conversation not found
+        "409":
+          description: The 24-hour customer service window is closed
+        "502":
+          description: WhatsApp provider rejected the message
+
+  /webhooks/whatsapp:
+    get:
+      operationId: verifyWhatsAppWebhook
+      tags: [webhooks]
+      summary: Verify the Meta WhatsApp webhook callback
+      parameters:
+        - name: hub.mode
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: hub.verify_token
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: hub.challenge
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Webhook challenge
+          content:
+            text/plain:
+              schema:
+                type: string
+        "403":
+          description: Verification token rejected
+    post:
+      operationId: receiveWhatsAppWebhook
+      tags: [webhooks]
+      summary: Receive signed WhatsApp messages and delivery updates from Meta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WhatsAppWebhookPayload"
+      responses:
+        "200":
+          description: Webhook event stored
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+        "401":
+          description: Invalid webhook signature
+        "503":
+          description: Webhook signature secret is not configured
+
   # ── DRIVERS ──────────────────────────────────────────────────────────────────
   /drivers:
     get:
@@ -956,6 +1120,93 @@ components:
           type: integer
         completedToday:
           type: integer
+
+    WhatsAppConversation:
+      type: object
+      required: [id, customerPhone, customerName, businessPhoneNumberId, latestMessageText, latestMessageAt, unreadCount, replyWindowOpen, createdAt]
+      properties:
+        id:
+          type: integer
+        customerPhone:
+          type: string
+        customerName:
+          type: ["string", "null"]
+        businessPhoneNumberId:
+          type: string
+        latestMessageText:
+          type: string
+        latestMessageAt:
+          type: string
+          format: date-time
+        unreadCount:
+          type: integer
+        replyWindowOpen:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    WhatsAppConversationDetail:
+      type: object
+      required: [id, customerPhone, customerName, businessPhoneNumberId, latestMessageText, latestMessageAt, unreadCount, replyWindowOpen, createdAt, messages]
+      properties:
+        id:
+          type: integer
+        customerPhone:
+          type: string
+        customerName:
+          type: ["string", "null"]
+        businessPhoneNumberId:
+          type: string
+        latestMessageText:
+          type: string
+        latestMessageAt:
+          type: string
+          format: date-time
+        unreadCount:
+          type: integer
+        replyWindowOpen:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/WhatsAppMessage"
+
+    WhatsAppMessage:
+      type: object
+      required: [id, conversationId, direction, text, status, providerMessageId, createdAt]
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        direction:
+          type: string
+          enum: [inbound, outbound]
+        text:
+          type: string
+        status:
+          type: string
+        providerMessageId:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    WhatsAppReplyInput:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          minLength: 1
+
+    WhatsAppWebhookPayload:
+      type: object
+      additionalProperties: true
 
     FleetStatus:
       type: object

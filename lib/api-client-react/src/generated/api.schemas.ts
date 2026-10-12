@@ -343,6 +343,59 @@ export interface DashboardSummary {
   completedToday: number;
 }
 
+export interface WhatsAppConversation {
+  id: number;
+  customerPhone: string;
+  /** @nullable */
+  customerName: string | null;
+  businessPhoneNumberId: string;
+  latestMessageText: string;
+  latestMessageAt: string;
+  unreadCount: number;
+  replyWindowOpen: boolean;
+  createdAt: string;
+}
+
+export type WhatsAppMessageDirection = typeof WhatsAppMessageDirection[keyof typeof WhatsAppMessageDirection];
+
+
+export const WhatsAppMessageDirection = {
+  inbound: 'inbound',
+  outbound: 'outbound',
+} as const;
+
+export interface WhatsAppMessage {
+  id: number;
+  conversationId: number;
+  direction: WhatsAppMessageDirection;
+  text: string;
+  status: string;
+  /** @nullable */
+  providerMessageId: string | null;
+  createdAt: string;
+}
+
+export interface WhatsAppConversationDetail {
+  id: number;
+  customerPhone: string;
+  /** @nullable */
+  customerName: string | null;
+  businessPhoneNumberId: string;
+  latestMessageText: string;
+  latestMessageAt: string;
+  unreadCount: number;
+  replyWindowOpen: boolean;
+  createdAt: string;
+  messages: WhatsAppMessage[];
+}
+
+export interface WhatsAppReplyInput {
+  /** @minLength 1 */
+  text: string;
+}
+
+export interface WhatsAppWebhookPayload { [key: string]: unknown }
+
 export interface FleetStatus {
   available: number;
   onRoute: number;
@@ -366,4 +419,14 @@ export interface AnalyticsData {
   monthly: AnalyticsDataPoint[];
   bookingsByService: ServiceBreakdown[];
 }
+
+export type VerifyWhatsAppWebhookParams = {
+'hub.mode': string;
+'hub.verify_token': string;
+'hub.challenge': string;
+};
+
+export type ReceiveWhatsAppWebhook200 = {
+  received?: boolean;
+};
 

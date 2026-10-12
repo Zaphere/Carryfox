@@ -239,6 +239,103 @@ export const UpdateBookingResponse = zod.object({
 
 
 /**
+ * @summary Send the current booking status to the customer on WhatsApp
+ */
+export const SendBookingWhatsAppStatusParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary List WhatsApp conversations for the admin inbox
+ */
+export const ListWhatsAppConversationsResponseItem = zod.object({
+  "id": zod.number(),
+  "customerPhone": zod.string(),
+  "customerName": zod.string().nullable(),
+  "businessPhoneNumberId": zod.string(),
+  "latestMessageText": zod.string(),
+  "latestMessageAt": zod.coerce.date(),
+  "unreadCount": zod.number(),
+  "replyWindowOpen": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+export const ListWhatsAppConversationsResponse = zod.array(ListWhatsAppConversationsResponseItem)
+
+
+/**
+ * @summary Get a conversation and its messages
+ */
+export const GetWhatsAppConversationParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetWhatsAppConversationResponse = zod.object({
+  "id": zod.number(),
+  "customerPhone": zod.string(),
+  "customerName": zod.string().nullable(),
+  "businessPhoneNumberId": zod.string(),
+  "latestMessageText": zod.string(),
+  "latestMessageAt": zod.coerce.date(),
+  "unreadCount": zod.number(),
+  "replyWindowOpen": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "messages": zod.array(zod.object({
+  "id": zod.number(),
+  "conversationId": zod.number(),
+  "direction": zod.enum(['inbound', 'outbound']),
+  "text": zod.string(),
+  "status": zod.string(),
+  "providerMessageId": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Clear unread messages in a WhatsApp conversation
+ */
+export const MarkWhatsAppConversationReadParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Reply to a customer WhatsApp conversation
+ */
+export const SendWhatsAppMessageParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+export const SendWhatsAppMessageBody = zod.object({
+  "text": zod.string().min(1)
+})
+
+
+/**
+ * @summary Verify the Meta WhatsApp webhook callback
+ */
+export const VerifyWhatsAppWebhookQueryParams = zod.object({
+  "hub.mode": zod.coerce.string(),
+  "hub.verify_token": zod.coerce.string(),
+  "hub.challenge": zod.coerce.string()
+})
+
+
+/**
+ * @summary Receive signed WhatsApp messages and delivery updates from Meta
+ */
+export const ReceiveWhatsAppWebhookBody = zod.record(zod.string(), zod.unknown())
+
+export const ReceiveWhatsAppWebhookResponse = zod.object({
+  "received": zod.boolean().optional()
+})
+
+
+/**
  * @summary List all drivers
  */
 export const ListDriversResponseItem = zod.object({

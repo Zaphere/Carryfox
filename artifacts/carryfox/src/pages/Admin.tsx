@@ -4,29 +4,35 @@ import {
   Activity, ArrowRight,
   CircleAlert, ClipboardList, Euro, FileText, LayoutDashboard, LoaderCircle,
   MapPin, Menu, Pencil, Plus, RefreshCw, Search, ShieldCheck, Truck, Users,
-  X, Star, CalendarDays, Trash2, Clock3, PackageCheck,
+  X, Star, CalendarDays, Trash2, Clock3, PackageCheck, MessageSquareText, Send,
+  Phone, CheckCheck,
 } from "lucide-react";
 import {
   getListBookingsQueryKey, getListDriversQueryKey, getListQuotesQueryKey,
-  getListVehiclesQueryKey, useCreateDriver, useCreateVehicle,
+  getListVehiclesQueryKey, getListWhatsAppConversationsQueryKey,
+  getGetWhatsAppConversationQueryKey, useCreateDriver, useCreateVehicle,
   useDeleteDriver, useDeleteVehicle, useGetDashboardSummary, useListBookings,
   useListDrivers, useListQuotes, useListVehicles, useUpdateBooking,
-  useUpdateDriver, useUpdateQuote, useUpdateVehicle,
+  useUpdateDriver, useUpdateQuote, useUpdateVehicle, useListWhatsAppConversations,
+  useGetWhatsAppConversation, useMarkWhatsAppConversationRead, useSendWhatsAppMessage,
+  useSendBookingWhatsAppStatus,
 } from "@workspace/api-client-react";
 import type {
   Booking, BookingUpdate, Driver, DriverInput, DriverUpdate, Quote,
-  QuoteUpdate, Vehicle, VehicleInput, VehicleUpdate,
+  QuoteUpdate, Vehicle, VehicleInput, VehicleUpdate, WhatsAppConversation,
+  WhatsAppConversationDetail,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
-type Page = "overview" | "bookings" | "quotes" | "drivers" | "vehicles";
+type Page = "overview" | "bookings" | "quotes" | "whatsapp" | "drivers" | "vehicles";
 type EntityDialog = { kind: "driver" | "vehicle"; record?: Driver | Vehicle } | null;
 
 const NAV: { key: Page; name: string; icon: typeof LayoutDashboard }[] = [
   { key: "overview", name: "Overview", icon: LayoutDashboard },
   { key: "bookings", name: "Bookings", icon: ClipboardList },
   { key: "quotes", name: "Quotes", icon: FileText },
+  { key: "whatsapp", name: "WhatsApp", icon: MessageSquareText },
   { key: "drivers", name: "Drivers", icon: Users },
   { key: "vehicles", name: "Vehicles", icon: Truck },
 ];
@@ -70,6 +76,12 @@ function dateLabel(value: string | undefined) {
   if (!value) return "—";
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat("de-AT", { day: "2-digit", month: "short", year: "numeric" }).format(date);
+}
+
+function timeLabel(value: string | undefined) {
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat("de-AT", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(date);
 }
 
 function StatusPill({ value }: { value: string }) {
@@ -143,7 +155,9 @@ function DialogFrame({ title, description, onClose, children, wide = false }: { 
 
 function BookingEditor({ booking, drivers, vehicles, onClose, refresh }: { booking: Booking; drivers: Driver[]; vehicles: Vehicle[]; onClose: () => void; refresh: () => void }) {
   const mutation = useUpdateBooking();
+  const statusMessage = useSendBookingWhatsAppStatus();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState(booking.status);
   const [driverId, setDriverId] = useState(booking.driverId == null ? "" : String(booking.driverId));
   const [vehicleId, setVehicleId] = useState(booking.vehicleId == null ? "" : String(booking.vehicleId));
@@ -156,6 +170,19 @@ function BookingEditor({ booking, drivers, vehicles, onClose, refresh }: { booki
       onError: error => toast({ title: "Couldn’t save booking", description: mutationRecovery(error, "Your changes were not saved. Try again."), variant: "destructive" }),
     });
   };
+  const sendStatus = () => statusMessage.mutate({ id: booking.id }, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getListWhatsAppConversationsQueryKey() });
+      toast({ title: "WhatsApp status sent", description: `The current status for booking #${booking.id} was sent to the customer.` });
+    },
+    onError: error => toast({
+      title: getHttpStatus(error) === 409 ? "Approved template required" : "WhatsApp status wasn’t sent",
+      description: getHttpStatus(error) === 409
+        ? "The customer’s 24-hour service window is closed. An approved WhatsApp template is required; no status message was sent."
+        : mutationRecovery(error, "The status message could not be sent. Try again."),
+      variant: "destructive",
+    }),
+  });
   return <DialogFrame title={`Booking #${booking.id}`} description={`${booking.customerName} · ${dateLabel(booking.scheduledDate)}`} onClose={onClose} wide>
     <form onSubmit={submit} className="space-y-5 p-5 sm:p-6">
       <div className="grid gap-4 sm:grid-cols-2">
@@ -167,7 +194,10 @@ function BookingEditor({ booking, drivers, vehicles, onClose, refresh }: { booki
       <div className="grid gap-3 rounded-xl bg-[#f7f4ed] p-4 text-xs text-[#69675d] sm:grid-cols-2">
         <p><span className="block text-[10px] font-bold uppercase tracking-wider text-[#a09a8d]">Collection</span>{booking.pickupAddress}</p><p><span className="block text-[10px] font-bold uppercase tracking-wider text-[#a09a8d]">Delivery</span>{booking.destinationAddress}</p>
       </div>
-      <div className="flex justify-end gap-2 border-t border-[#eee9df] pt-4"><ActionButton variant="quiet" onClick={onClose}>Cancel</ActionButton><ActionButton type="submit" disabled={mutation.isPending} testId="button-save-booking">{mutation.isPending && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}Save changes</ActionButton></div>
+      <div className="flex flex-col-reverse gap-2 border-t border-[#eee9df] pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <ActionButton variant="quiet" onClick={sendStatus} disabled={statusMessage.isPending} testId="button-send-booking-whatsapp-status">{statusMessage.isPending ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <MessageSquareText className="h-3.5 w-3.5" />}Send WhatsApp status</ActionButton>
+        <div className="flex justify-end gap-2"><ActionButton variant="quiet" onClick={onClose}>Cancel</ActionButton><ActionButton type="submit" disabled={mutation.isPending} testId="button-save-booking">{mutation.isPending && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}Save changes</ActionButton></div>
+      </div>
     </form>
   </DialogFrame>;
 }
@@ -402,6 +432,132 @@ function Vehicles({ onEdit }: { onEdit: (vehicle?: Vehicle) => void }) {
   </Panel>;
 }
 
+function Inbox({ conversations, isLoading, isError, refetch }: {
+  conversations?: WhatsAppConversation[];
+  isLoading: boolean;
+  isError: boolean;
+  refetch: () => void;
+}) {
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [reply, setReply] = useState("");
+  const [sendError, setSendError] = useState("");
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const detailQuery = useGetWhatsAppConversation(selectedId ?? 0, {
+    query: {
+      enabled: selectedId !== null,
+      queryKey: getGetWhatsAppConversationQueryKey(selectedId ?? 0),
+    },
+  });
+  const markRead = useMarkWhatsAppConversationRead();
+  const sendMessage = useSendWhatsAppMessage();
+  const selectedSummary = conversations?.find(conversation => conversation.id === selectedId);
+  const detail = detailQuery.data as WhatsAppConversationDetail | undefined;
+  const conversation = detail ?? selectedSummary;
+  const canReply = conversation?.replyWindowOpen === true;
+
+  const invalidateConversation = (id: number) => {
+    queryClient.invalidateQueries({ queryKey: getListWhatsAppConversationsQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getGetWhatsAppConversationQueryKey(id) });
+  };
+  const openConversation = (item: WhatsAppConversation) => {
+    setSelectedId(item.id);
+    setReply("");
+    setSendError("");
+    if (item.unreadCount > 0) {
+      markRead.mutate({ id: item.id }, {
+        onSuccess: () => invalidateConversation(item.id),
+        onError: error => toast({
+          title: "Unread state wasn’t cleared",
+          description: mutationRecovery(error, "This conversation opened, but its unread messages could not be marked as read."),
+          variant: "destructive",
+        }),
+      });
+    }
+  };
+  const submitReply = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const text = reply.trim();
+    if (!selectedId || !text || !canReply || sendMessage.isPending) return;
+    setSendError("");
+    sendMessage.mutate({ id: selectedId, data: { text } }, {
+      onSuccess: () => {
+        setReply("");
+        invalidateConversation(selectedId);
+        toast({ title: "Reply sent", description: "Your WhatsApp message was sent to the customer." });
+      },
+      onError: error => {
+        const status = getHttpStatus(error);
+        const message = status === 409
+          ? "Reply not sent. The 24-hour customer service window is closed; an approved WhatsApp template is required."
+          : mutationRecovery(error, "Your reply was not sent. Try again.");
+        setSendError(message);
+        if (status === 409 && selectedId !== null) invalidateConversation(selectedId);
+      },
+    });
+  };
+
+  const unreadTotal = (conversations ?? []).reduce((total, item) => total + item.unreadCount, 0);
+  return <Panel className="overflow-hidden">
+    <PanelHeading eyebrow="Customer messaging" title="WhatsApp inbox" aside={<div className="flex items-center gap-2"><span className="rounded-full bg-[#f4f0e8] px-2.5 py-1 text-[10px] font-semibold text-[#817c70]">{unreadTotal} unread</span></div>} />
+    <div className="grid min-h-[580px] md:grid-cols-[300px_minmax(0,1fr)]">
+      <aside className="border-b border-[#eee9df] md:border-b-0 md:border-r" aria-label="Conversations">
+        <div className="flex items-center justify-between border-b border-[#f0ece5] px-4 py-3"><p className="text-[10px] font-bold uppercase tracking-[.13em] text-[#8e897e]">Conversations</p><button onClick={refetch} className="rounded-md p-1.5 text-[#999387] hover:bg-[#f3efe7] hover:text-[#514f47]" aria-label="Refresh conversations" data-testid="button-refresh-whatsapp"><RefreshCw className="h-3.5 w-3.5" /></button></div>
+        {isLoading && <div className="space-y-3 p-4" aria-label="Loading WhatsApp conversations">{[0, 1, 2, 3].map(index => <div key={index} className="flex gap-3"><div className="h-9 w-9 animate-pulse rounded-full bg-[#f0ece4]" /><div className="flex-1 space-y-2 pt-1"><div className="h-3 w-2/3 animate-pulse rounded bg-[#f0ece4]" /><div className="h-3 w-full animate-pulse rounded bg-[#f6f2ea]" /></div></div>)}</div>}
+        {!isLoading && isError && <QueryState loading={false} error retry={refetch} label="WhatsApp conversations" />}
+        {!isLoading && !isError && conversations?.length === 0 && <EmptyState title="Inbox is quiet" detail="Customer WhatsApp conversations will appear here when they message Carryfox." />}
+        {!isLoading && !isError && !!conversations?.length && <div className="max-h-[520px] overflow-y-auto">
+          {conversations.map(item => {
+            const active = item.id === selectedId;
+            return <button key={item.id} onClick={() => openConversation(item)} aria-pressed={active} data-testid={`whatsapp-conversation-${item.id}`} className={`flex w-full items-start gap-3 border-b border-[#f1ede5] px-4 py-4 text-left transition-colors ${active ? "bg-[#fbf3eb]" : "hover:bg-[#fcfaf6]"}`}>
+              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${active ? "bg-[#e36a37] text-white" : "bg-[#ede9df] text-[#777265]"}`}>
+                {(item.customerName ?? "WA").split(/\s+/).map(part => part[0]).slice(0, 2).join("").toUpperCase()}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex items-start justify-between gap-2"><span className="truncate text-[12px] font-semibold text-[#383932]">{item.customerName || item.customerPhone}</span><span className="shrink-0 text-[9px] text-[#a49e92]">{timeLabel(item.latestMessageAt)}</span></span>
+                <span className="mt-1 block truncate text-[10px] text-[#888478]">{item.latestMessageText}</span>
+                <span className="mt-2 flex items-center justify-between gap-2"><span className={`text-[9px] ${item.replyWindowOpen ? "text-[#638363]" : "text-[#a26a4f]"}`}>{item.replyWindowOpen ? "Reply window open" : "Window closed"}</span>{item.unreadCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#e36a37] px-1.5 text-[9px] font-bold text-white">{item.unreadCount}</span>}</span>
+              </span>
+            </button>;
+          })}
+        </div>}
+      </aside>
+
+      <section className="flex min-h-[580px] min-w-0 flex-col" aria-label="Selected conversation">
+        {!selectedId && <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 text-center"><span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f2eee5] text-[#aaa397]"><MessageSquareText className="h-5 w-5" /></span><h3 className="mt-4 text-sm font-semibold text-[#3d3e37]">Select a conversation</h3><p className="mt-1 max-w-xs text-xs leading-5 text-[#898579]">Choose a customer thread to read messages and reply while the service window is open.</p></div>}
+        {selectedId !== null && <>
+          {detailQuery.isLoading && <div className="space-y-4 p-6" aria-label="Loading conversation messages"><div className="h-12 w-2/3 animate-pulse rounded-xl bg-[#f0ece4]" /><div className="ml-auto h-12 w-1/2 animate-pulse rounded-xl bg-[#f8e9df]" /><div className="h-16 w-3/4 animate-pulse rounded-xl bg-[#f0ece4]" /></div>}
+          {detailQuery.isError && <QueryState loading={false} error retry={() => detailQuery.refetch()} label="messages" />}
+          {!detailQuery.isLoading && !detailQuery.isError && detail && <>
+            <header className="flex items-center justify-between gap-3 border-b border-[#eee9df] px-4 py-3 sm:px-5">
+              <div className="flex min-w-0 items-center gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#ede9df] text-[11px] font-bold text-[#777265]">{(detail.customerName ?? "WA").split(/\s+/).map(part => part[0]).slice(0, 2).join("").toUpperCase()}</span><div className="min-w-0"><p className="truncate text-[12px] font-semibold text-[#383932]">{detail.customerName || detail.customerPhone}</p><p className="mt-0.5 flex items-center gap-1 text-[10px] text-[#8e897e]"><Phone className="h-3 w-3" />{detail.customerPhone}</p></div></div>
+              <span className={`shrink-0 rounded-full px-2.5 py-1 text-[9px] font-semibold ${detail.replyWindowOpen ? "bg-[#e8f2e9] text-[#527954]" : "bg-[#f8eee8] text-[#a55b3d]"}`}>{detail.replyWindowOpen ? "24-hour window open" : "24-hour window closed"}</span>
+            </header>
+            <div className="flex items-center justify-between border-b border-[#f1ede5] bg-[#fcfaf6] px-4 py-2 text-[9px] text-[#979184] sm:px-5"><span>Carryfox business inbox</span><span>WhatsApp Business</span></div>
+            <div className="flex flex-1 flex-col gap-3 overflow-y-auto bg-[#f9f7f1] px-4 py-5 sm:px-6" aria-live="polite">
+              {markRead.isPending && markRead.variables?.id === detail.id && <p role="status" className="self-center rounded-full bg-[#fffefa] px-3 py-1 text-[9px] text-[#888478]">Clearing unread messages…</p>}
+              {!detail.messages.length && <div className="m-auto text-center text-xs text-[#898579]">No messages in this conversation yet.</div>}
+              {detail.messages.map(message => {
+                const outbound = message.direction === "outbound";
+                return <article key={message.id} data-testid={`whatsapp-message-${message.id}`} className={`max-w-[88%] rounded-xl border px-3.5 py-2.5 shadow-[0_1px_3px_rgba(47,49,43,.035)] sm:max-w-[75%] ${outbound ? "ml-auto border-[#f0d8c8] bg-[#fff2e9]" : "mr-auto border-[#e9e4da] bg-[#fffefa]"}`}>
+                  <p className="whitespace-pre-wrap break-words text-[12px] leading-5 text-[#494940]">{message.text}</p>
+                  <p className={`mt-1.5 flex items-center gap-1 text-[9px] text-[#9a9488] ${outbound ? "justify-end" : ""}`}>{outbound && <CheckCheck className="h-3 w-3 text-[#749177]" />}{timeLabel(message.createdAt)}{outbound && <span className="capitalize">· {message.status}</span>}</p>
+                </article>;
+              })}
+            </div>
+            {sendError && <p role="alert" className="mx-4 mt-3 rounded-lg border border-[#edd0c1] bg-[#fff4ed] px-3 py-2 text-[11px] leading-5 text-[#91472d] sm:mx-5">{sendError}</p>}
+            {detail.replyWindowOpen ? <form onSubmit={submitReply} className="border-t border-[#eee9df] bg-[#fffefa] p-3 sm:p-4">
+              <label htmlFor="whatsapp-reply" className="sr-only">Write a WhatsApp reply</label>
+              <div className="flex items-end gap-2"><textarea id="whatsapp-reply" value={reply} onChange={event => setReply(event.target.value)} rows={2} maxLength={4096} placeholder="Write a reply…" className="min-h-[52px] flex-1 resize-y rounded-xl border border-[#e4ded3] bg-[#fffefa] px-3 py-2.5 text-xs leading-5 text-[#35362f] outline-none focus:border-[#e36a37] focus:ring-2 focus:ring-[#e36a37]/15 disabled:bg-[#f5f2eb]" disabled={sendMessage.isPending} data-testid="input-whatsapp-reply" /><ActionButton type="submit" disabled={!reply.trim() || sendMessage.isPending} testId="button-send-whatsapp-reply">{sendMessage.isPending ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}<span className="hidden sm:inline">Send</span></ActionButton></div>
+              <p className="mt-2 text-[9px] text-[#a09a8e]">Replies are available within 24 hours of the customer’s latest message.</p>
+            </form> : <div className="border-t border-[#eee9df] bg-[#fcf8f3] px-4 py-4 sm:px-5"><p className="text-[11px] font-semibold text-[#8d513b]">Customer service window closed</p><p className="mt-1 text-[10px] leading-5 text-[#8a7669]">A reply requires an approved WhatsApp template. Free-form messages are unavailable outside the 24-hour window.</p></div>}
+          </>}
+        </>}
+      </section>
+    </div>
+  </Panel>;
+}
+
 function getHttpStatus(error: unknown): number | undefined {
   if (typeof error !== "object" || error === null || !("status" in error)) return undefined;
   const status = (error as { status?: unknown }).status;
@@ -450,7 +606,8 @@ export default function Admin() {
   const quoteQuery = useListQuotes();
   const driverQuery = useListDrivers();
   const vehicleQuery = useListVehicles();
-  const accessStatus = [summaryQuery.error, bookingQuery.error, quoteQuery.error, driverQuery.error, vehicleQuery.error]
+  const whatsappQuery = useListWhatsAppConversations();
+  const accessStatus = [summaryQuery.error, bookingQuery.error, quoteQuery.error, driverQuery.error, vehicleQuery.error, whatsappQuery.error]
     .map(getHttpStatus)
     .find((status): status is 401 | 403 | 503 => status === 503 || status === 401 || status === 403);
   const refresh = () => {
@@ -462,6 +619,7 @@ export default function Admin() {
   const counts: Partial<Record<Page, number>> = {
     bookings: bookingQuery.data?.length,
     quotes: quoteQuery.data?.filter(q => q.status === "pending").length,
+    whatsapp: whatsappQuery.data?.reduce((total, conversation) => total + conversation.unreadCount, 0),
     drivers: driverQuery.data?.length,
     vehicles: vehicleQuery.data?.length,
   };
@@ -475,6 +633,7 @@ export default function Admin() {
     quoteQuery.refetch();
     driverQuery.refetch();
     vehicleQuery.refetch();
+    whatsappQuery.refetch();
   };
 
   if (accessStatus) return <AccessRecovery status={accessStatus} retry={retryAll} />;
@@ -500,13 +659,14 @@ export default function Admin() {
             <button onClick={() => setMobileNav(current => !current)} aria-label="Toggle navigation" aria-expanded={mobileNav} className="rounded-lg border border-[#e4ded3] bg-[#fffefa] p-2 text-[#5a594f] md:hidden" data-testid="button-mobile-navigation"><Menu className="h-4 w-4" /></button>
             <div><p className="text-[9px] font-bold uppercase tracking-[.18em] text-[#a19b8e]">Carryfox / Operations</p><h1 className="mt-1 text-[21px] font-bold tracking-[-.045em] text-[#292a25] sm:text-[25px]">{pageInfo.name}</h1></div>
           </div>
-          <div className="hidden items-center gap-2 rounded-full border border-[#e6e0d6] bg-[#fffefa] px-3 py-2 text-[10px] font-medium text-[#79766b] sm:flex"><span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#8eaa83] opacity-50" /><span className="relative inline-flex h-2 w-2 rounded-full bg-[#73936a]" /></span>Data synced</div>
+          <div className="hidden items-center gap-2 rounded-full border border-[#e6e0d6] bg-[#fffefa] px-3 py-2 text-[10px] font-medium text-[#79766b] sm:flex"><span className="h-1.5 w-1.5 rounded-full bg-[#73936a]" />Operations workspace</div>
         </header>
         {mobileNav && <nav aria-label="Admin navigation" className="mb-5 grid grid-cols-2 gap-2 rounded-xl border border-[#e7e1d6] bg-[#fffefa] p-2 md:hidden">{NAV.map(item => { const Icon = item.icon; return <button key={item.key} onClick={() => selectPage(item.key)} className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs font-semibold ${activePage === item.key ? "bg-[#f8e9df] text-[#b74c25]" : "text-[#777468] hover:bg-[#f6f2ea]"}`} data-testid={`mobile-admin-tab-${item.key}`}><Icon className="h-4 w-4" />{item.name}{counts[item.key] != null && <span className="ml-auto font-mono text-[10px]">{counts[item.key]}</span>}</button>; })}</nav>}
         <motion.div key={activePage} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .2 }}>
           {activePage === "overview" && <Overview summary={summaryQuery.data} summaryLoading={summaryQuery.isLoading} summaryError={summaryQuery.isError} retrySummary={() => summaryQuery.refetch()} bookings={bookingQuery.data ?? []} quotes={quoteQuery.data ?? []} bookingsLoading={bookingQuery.isLoading} bookingsError={bookingQuery.isError} retryBookings={() => bookingQuery.refetch()} quotesLoading={quoteQuery.isLoading} quotesError={quoteQuery.isError} retryQuotes={() => quoteQuery.refetch()} navigate={selectPage} />}
           {activePage === "bookings" && <Bookings drivers={driverQuery.data ?? []} vehicles={vehicleQuery.data ?? []} onEdit={setBookingToEdit} />}
           {activePage === "quotes" && <Quotes onEdit={setQuoteToEdit} />}
+          {activePage === "whatsapp" && <Inbox conversations={whatsappQuery.data} isLoading={whatsappQuery.isLoading} isError={whatsappQuery.isError} refetch={() => whatsappQuery.refetch()} />}
           {activePage === "drivers" && <Drivers onEdit={setDriverDialog} />}
           {activePage === "vehicles" && <Vehicles onEdit={setVehicleDialog} />}
         </motion.div>
