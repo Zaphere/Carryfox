@@ -48,6 +48,9 @@ Thumbs.db
 .cache/
 .local/
 
+# Vercel
+.vercel
+
 # local secrets
 .env
 .env.*

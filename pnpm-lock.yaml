@@ -157,15 +157,27 @@ importers:
 
   .:
     devDependencies:
+      '@esbuild/linux-x64':
+        specifier: 0.27.3
+        version: 0.27.3
       '@esbuild/win32-x64':
         specifier: 0.27.3
         version: 0.27.3
+      '@rollup/rollup-linux-x64-gnu':
+        specifier: 4.60.3
+        version: 4.60.3
       '@rollup/rollup-win32-x64-msvc':
         specifier: 4.60.3
         version: 4.60.3
+      '@tailwindcss/oxide-linux-x64-gnu':
+        specifier: 4.3.0
+        version: 4.3.0
       '@tailwindcss/oxide-win32-x64-msvc':
         specifier: 4.3.0
         version: 4.3.0
+      lightningcss-linux-x64-gnu:
+        specifier: 1.32.0
+        version: 1.32.0
       lightningcss-win32-x64-msvc:
         specifier: 1.32.0
         version: 1.32.0
@@ -1614,7 +1626,6 @@ packages:
     resolution: {integrity: sha512-DAZDBHQfG2oQuhY7mc6I3/qB4LU2fQCjRvxbDwd/Jdvb9fypP4IJ4qmtu6lNjes6B531AI8cg1aKC2di97bUxA==}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-win32-x64-msvc@4.60.3':
     resolution: {integrity: sha512-hPt/bgL5cE+Qp+/TPHBqptcAgPzgj46mPcg/16zNUmbQk0j+mOEQV/+Lqu8QRtDV3Ek95Q6FeFITpuhl6OTsAA==}
@@ -1686,7 +1697,6 @@ packages:
     engines: {node: '>= 20'}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@tailwindcss/oxide-wasm32-wasi@4.3.0':
     resolution: {integrity: sha512-HNZGOUxEmElksYR7S6sC5jTeNGpobAsy9u7Gu0AskJ8/20FR9GqebUyB+HBcU/ax6BHuiuJi+Oda4B+YX6H1yA==}
@@ -2554,7 +2564,6 @@ packages:
     engines: {node: '>= 12.0.0'}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   lightningcss-win32-x64-msvc@1.32.0:
     resolution: {integrity: sha512-Amq9B/SoZYdDi1kFrojnoqPLxYhQ4Wo5XiL8EVJrVsB8ARoC1PWW6VGtT0WKCemjy8aC+louJnjS7U18x3b06Q==}
@@ -3534,8 +3543,7 @@ snapshots:
 
   '@drizzle-team/brocli@0.10.2': {}
 
-  '@esbuild/linux-x64@0.27.3':
-    optional: true
+  '@esbuild/linux-x64@0.27.3': {}
 
   '@esbuild/win32-x64@0.27.3': {}
 
@@ -5130,8 +5138,7 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.0-rc.3': {}
 
-  '@rollup/rollup-linux-x64-gnu@4.60.3':
-    optional: true
+  '@rollup/rollup-linux-x64-gnu@4.60.3': {}
 
   '@rollup/rollup-win32-x64-msvc@4.60.3': {}
 
@@ -5208,8 +5215,7 @@ snapshots:
       source-map-js: 1.2.1
       tailwindcss: 4.3.0
 
-  '@tailwindcss/oxide-linux-x64-gnu@4.3.0':
-    optional: true
+  '@tailwindcss/oxide-linux-x64-gnu@4.3.0': {}
 
   '@tailwindcss/oxide-wasm32-wasi@4.3.0':
     optional: true
@@ -5983,8 +5989,7 @@ snapshots:
 
   leven@4.1.0: {}
 
-  lightningcss-linux-x64-gnu@1.32.0:
-    optional: true
+  lightningcss-linux-x64-gnu@1.32.0: {}
 
   lightningcss-win32-x64-msvc@1.32.0: {}
 
