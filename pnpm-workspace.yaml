@@ -68,6 +68,10 @@ catalog:
 
 autoInstallPeers: false
 
+# Don't auto-run a nested install before every `pnpm run`/`exec` — install is
+# an explicit step (locally and in CI/Vercel). Warn instead when deps look stale.
+verifyDepsBeforeRun: warn
+
 # pnpm 11: allowBuilds replaced the pnpm 10 onlyBuiltDependencies setting.
 # Only approved packages may run install-time build scripts.
 allowBuilds:

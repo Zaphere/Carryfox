@@ -3,7 +3,8 @@ import { MapPin, Calculator, BarChart3, Settings, Menu, X, ArrowRight, Sun, Moon
 import { Truck } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import logoImg from "/logo.png";
+import logoDark from "/logo-dark.png";
+import logoLight from "/logo-light.png";
 import { useT } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
 
@@ -28,9 +29,9 @@ export default function Navbar() {
         <div className="flex h-20 items-center justify-between">
           <Link href="/" className="flex items-center" data-testid="link-home">
             <img
-              src={logoImg}
+              src={theme === "dark" ? logoDark : logoLight}
               alt="Carryfox.at"
-              className="h-14 w-auto dark:brightness-100 brightness-90"
+              className="h-14 w-auto"
             />
           </Link>
 
