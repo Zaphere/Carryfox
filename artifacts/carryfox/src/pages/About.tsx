@@ -3,6 +3,7 @@ import { motion, useInView } from "framer-motion";
 import { Link } from "wouter";
 import { ArrowRight, Shield, Zap, Heart, Award, MapPin, Users, Star, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import FloatingIcon from "@/components/FloatingIcon";
 
 function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
   const [val, setVal] = useState(0);
@@ -76,6 +77,7 @@ const TEAM = [
 export default function About() {
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
+      <FloatingIcon side="right" glow />
 
       {/* ── HERO ── */}
       <section className="relative py-32 px-4 md:px-6 overflow-hidden">

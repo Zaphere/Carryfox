@@ -5,6 +5,7 @@ import { Home, GraduationCap, Building2, Warehouse, Armchair, Trash2, Package, F
 import { Button } from "@/components/ui/button";
 import { useListServices } from "@workspace/api-client-react";
 import { useT } from "@/lib/i18n";
+import FloatingIcon from "@/components/FloatingIcon";
 
 const iconMap: Record<string, React.ReactNode> = {
   Home:          <Home          className="h-8 w-8" />,
@@ -32,6 +33,7 @@ export default function Services() {
 
   return (
     <div className="min-h-screen bg-background">
+      <FloatingIcon side="right" />
       {/* Header with photo background */}
       <section className="relative h-[52vh] min-h-[400px] flex items-end overflow-hidden border-b border-border">
         <div className="absolute inset-0 z-0">

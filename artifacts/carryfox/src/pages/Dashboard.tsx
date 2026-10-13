@@ -9,6 +9,7 @@ import {
   useGetRecentBookings, useListActiveTracking,
 } from "@workspace/api-client-react";
 import { useTheme } from "@/lib/theme";
+import FloatingIcon from "@/components/FloatingIcon";
 
 const SERVICE_LABELS: Record<string, string> = {
   apartment_move: "Apartment",
@@ -61,6 +62,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background py-10 px-4 md:px-6">
+      <FloatingIcon side="right" container="max-w-7xl" />
       <div className="container mx-auto max-w-7xl">
 
         {/* ── Header ── */}
