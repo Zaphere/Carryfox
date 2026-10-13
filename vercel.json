@@ -3,6 +3,7 @@
   "framework": null,
   "installCommand": "pnpm install",
   "buildCommand": "pnpm --filter @workspace/api-server build && pnpm --filter @workspace/carryfox build",
+  "outputDirectory": "artifacts/carryfox/dist/public",
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
