@@ -1,0 +1,13 @@
+# Never bake host state or secrets into images — the builder recreates
+# everything it needs, and runtime config comes from compose env vars.
+node_modules
+**/node_modules
+**/dist
+.git
+.vercel
+.cache
+.local
+*.tsbuildinfo
+.env
+.env.*
+!.env.example

@@ -1,0 +1,27 @@
+# Carryfox web front: static SPA + API proxy.
+#
+# SITE_ADDRESS is injected by docker-compose from the repo .env:
+#   SITE_ADDRESS=:80         plain HTTP (local testing / IP-only servers)
+#   SITE_ADDRESS=example.com automatic HTTPS via Let's Encrypt (80 + 443 open)
+
+{$SITE_ADDRESS} {
+	root * /site
+	encode gzip
+
+	# Vite's hashed build assets are safe to cache forever.
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+
+	# API requests go to the Express server with their original path.
+	@api path /api/*
+	handle @api {
+		reverse_proxy api:8080
+	}
+
+	# SPA fallback: deep links like /track?id=7 serve index.html so the
+	# client-side router takes over.
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
+}

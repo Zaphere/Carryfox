@@ -1,0 +1,83 @@
+# Carryfox production stack — see DEPLOY.md for the full Hostinger guide.
+#
+#   docker compose up -d --build                 build + start everything
+#   docker compose --profile tools run --rm migrate   apply DB schema (one-off)
+#
+# Configuration comes from the repo-root .env (copy .env.example → .env).
+
+name: carryfox
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-carryfox}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (use letters and numbers only)}
+      POSTGRES_DB: ${POSTGRES_DB:-future_freight}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      target: api
+      args:
+        # Consumed by the shared builder stage; inlined into the SPA bundle.
+        VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:-}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "8080"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-carryfox}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-future_freight}
+      CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY:-}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
+      ADMIN_OWNER_EMAIL: ${ADMIN_OWNER_EMAIL:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # Optional WhatsApp Cloud API — leave empty to disable.
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+      WHATSAPP_GRAPH_API_VERSION: ${WHATSAPP_GRAPH_API_VERSION:-}
+      WHATSAPP_TEMPLATE_LANGUAGE: ${WHATSAPP_TEMPLATE_LANGUAGE:-}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      target: frontend
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+
+  # One-off: apply the Drizzle schema (fresh DB or after schema changes).
+  #   docker compose --profile tools run --rm migrate
+  migrate:
+    profiles: ["tools"]
+    build:
+      context: .
+      target: builder
+    command: pnpm --filter @workspace/db run push-force
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-carryfox}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-future_freight}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:
+  caddy_data:
+  caddy_config:
