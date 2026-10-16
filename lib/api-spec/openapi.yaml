@@ -115,6 +115,21 @@ paths:
                 $ref: "#/components/schemas/Quote"
         "404":
           description: Not found
+    delete:
+      operationId: deleteQuote
+      tags: [quotes]
+      summary: Delete a quote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Quote deleted
+        "404":
+          description: Not found
 
   # ── BOOKINGS ─────────────────────────────────────────────────────────────────
   /bookings:
@@ -192,6 +207,21 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Booking"
+    delete:
+      operationId: deleteBooking
+      tags: [bookings]
+      summary: Delete a booking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Booking deleted
+        "404":
+          description: Not found
 
   /bookings/{id}/whatsapp-status:
     post:
@@ -582,6 +612,37 @@ paths:
                 items:
                   $ref: "#/components/schemas/TrackingInfo"
 
+  /tracking/lookup:
+    get:
+      operationId: lookupBookings
+      tags: [tracking]
+      summary: Recover booking references using the email or phone used at booking
+      description: >
+        Public endpoint. A customer who lost their tracking reference can find
+        it again by providing the email and/or phone number they booked with.
+        Provide at least one of the two; when both are given, both must match.
+        Phone matching is tolerant of formats (+43 vs 0-prefix, spaces, etc).
+      parameters:
+        - name: email
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: phone
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Bookings matching the customer's email and phone
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BookingReference"
+
   # ── SERVICES ─────────────────────────────────────────────────────────────────
   /services:
     get:
@@ -777,6 +838,15 @@ components:
           type: string
         destinationAddress:
           type: string
+        pickupLat:
+          type: ["number", "null"]
+          description: "Pickup coordinates from address autocomplete (null if manual entry)"
+        pickupLng:
+          type: ["number", "null"]
+        destinationLat:
+          type: ["number", "null"]
+        destinationLng:
+          type: ["number", "null"]
         scheduledDate:
           type: string
           format: date-time
@@ -814,6 +884,15 @@ components:
           type: string
         destinationAddress:
           type: string
+        pickupLat:
+          type: ["number", "null"]
+          description: "Pickup coordinates from address autocomplete (null if manual entry)"
+        pickupLng:
+          type: ["number", "null"]
+        destinationLat:
+          type: ["number", "null"]
+        destinationLng:
+          type: ["number", "null"]
         scheduledDate:
           type: string
           format: date-time
@@ -1034,6 +1113,28 @@ components:
           format: date
 
     # ── TRACKING ──────────────────────────────────────────────────────────────
+    BookingReference:
+      type: object
+      required: [bookingId, status, pickupAddress, destinationAddress, scheduledDate, serviceType]
+      properties:
+        bookingId:
+          type: integer
+        status:
+          type: string
+          description: "confirmed, crew_assigned, loading, on_route, arriving, completed, cancelled"
+        pickupAddress:
+          type: string
+        destinationAddress:
+          type: string
+        scheduledDate:
+          type: string
+          format: date-time
+        serviceType:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
     TrackingInfo:
       type: object
       required: [bookingId, status, driverName, driverPhone, vehiclePlate, pickupAddress, destinationAddress, estimatedArrival, distanceRemaining, currentSpeed, currentLat, currentLng, routeProgress, weatherCondition, updatedAt]
@@ -1076,6 +1177,15 @@ components:
         updatedAt:
           type: string
           format: date-time
+        pickupLat:
+          type: ["number", "null"]
+          description: "Stored pickup coordinates (null when not captured at booking time)"
+        pickupLng:
+          type: ["number", "null"]
+        destinationLat:
+          type: ["number", "null"]
+        destinationLng:
+          type: ["number", "null"]
 
     # ── SERVICE ───────────────────────────────────────────────────────────────
     Service:

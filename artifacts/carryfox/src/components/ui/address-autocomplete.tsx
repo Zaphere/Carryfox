@@ -51,6 +51,9 @@ async function searchAddresses(query: string): Promise<NominatimResult[]> {
 interface AddressAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
+  /** Called with the coordinates of the picked suggestion, or null when the
+   *  text is typed manually / cleared (no reliable coordinates available). */
+  onCoords?: (coords: { lat: number; lng: number } | null) => void;
   placeholder?: string;
   className?: string;
   "data-testid"?: string;
@@ -60,6 +63,7 @@ interface AddressAutocompleteProps {
 export function AddressAutocomplete({
   value,
   onChange,
+  onCoords,
   placeholder = "Start typing an address…",
   className,
   "data-testid": testId,
@@ -102,6 +106,8 @@ export function AddressAutocomplete({
     const q = e.target.value;
     setQuery(q);
     onChange(q);
+    // Manual typing invalidates any previously picked coordinates.
+    onCoords?.(null);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => runSearch(q), 300);
   };
@@ -110,6 +116,7 @@ export function AddressAutocomplete({
     const formatted = formatAddress(result);
     setQuery(formatted);
     onChange(formatted);
+    onCoords?.({ lat: parseFloat(result.lat), lng: parseFloat(result.lon) });
     setOpen(false);
     setResults([]);
     inputRef.current?.blur();
@@ -118,6 +125,7 @@ export function AddressAutocomplete({
   const clear = () => {
     setQuery("");
     onChange("");
+    onCoords?.(null);
     setResults([]);
     setOpen(false);
     inputRef.current?.focus();

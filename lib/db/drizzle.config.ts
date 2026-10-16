@@ -1,12 +1,14 @@
 import { defineConfig } from "drizzle-kit";
-import path from "path";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL, ensure the database is provisioned");
 }
 
 export default defineConfig({
-  schema: path.join(__dirname, "./src/schema/index.ts"),
+  // Relative glob (forward slashes) — drizzle-kit resolves it against this
+  // config's directory. Absolute Windows paths with backslashes break its
+  // glob matcher ("No schema files found").
+  schema: "./src/schema/*.ts",
   dialect: "postgresql",
   dbCredentials: {
     url: process.env.DATABASE_URL,

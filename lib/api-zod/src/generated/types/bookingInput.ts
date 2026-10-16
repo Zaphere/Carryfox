@@ -13,6 +13,17 @@ export interface BookingInput {
   customerPhone: string;
   pickupAddress: string;
   destinationAddress: string;
+  /**
+     * Pickup coordinates from address autocomplete (null if manual entry)
+     * @nullable
+     */
+  pickupLat?: number | null;
+  /** @nullable */
+  pickupLng?: number | null;
+  /** @nullable */
+  destinationLat?: number | null;
+  /** @nullable */
+  destinationLng?: number | null;
   scheduledDate: Date;
   serviceType: string;
   vehicleId?: number;

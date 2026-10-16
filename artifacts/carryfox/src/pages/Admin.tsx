@@ -10,15 +10,16 @@ import {
 import {
   getListBookingsQueryKey, getListDriversQueryKey, getListQuotesQueryKey,
   getListVehiclesQueryKey, getListWhatsAppConversationsQueryKey,
-  getGetWhatsAppConversationQueryKey, useCreateDriver, useCreateVehicle,
-  useDeleteDriver, useDeleteVehicle, useGetDashboardSummary, useListBookings,
+  getGetWhatsAppConversationQueryKey, useCreateBooking, useCreateDriver, useCreateVehicle,
+  useDeleteBooking, useDeleteDriver, useDeleteQuote, useDeleteVehicle,
+  useGetDashboardSummary, useListBookings,
   useListDrivers, useListQuotes, useListVehicles, useUpdateBooking,
   useUpdateDriver, useUpdateQuote, useUpdateVehicle, useListWhatsAppConversations,
   useGetWhatsAppConversation, useMarkWhatsAppConversationRead, useSendWhatsAppMessage,
   useSendBookingWhatsAppStatus,
 } from "@workspace/api-client-react";
 import type {
-  Booking, BookingUpdate, Driver, DriverInput, DriverUpdate, Quote,
+  Booking, BookingInput, BookingUpdate, Driver, DriverInput, DriverUpdate, Quote,
   QuoteUpdate, Vehicle, VehicleInput, VehicleUpdate, WhatsAppConversation,
   WhatsAppConversationDetail,
 } from "@workspace/api-client-react";
@@ -232,6 +233,61 @@ function QuoteEditor({ quote, onClose, refresh }: { quote: Quote; onClose: () =>
   </DialogFrame>;
 }
 
+function BookingCreator({ drivers, vehicles, onClose, refresh }: { drivers: Driver[]; vehicles: Vehicle[]; onClose: () => void; refresh: () => void }) {
+  const createBooking = useCreateBooking();
+  const { toast } = useToast();
+  const [form, setForm] = useState({
+    customerName: "", customerEmail: "", customerPhone: "",
+    pickupAddress: "", destinationAddress: "",
+    scheduledDate: new Date().toISOString().slice(0, 10),
+    serviceType: "apartment_move", vehicleId: "", driverId: "",
+    totalPrice: "", notes: "",
+  });
+  const set = (key: keyof typeof form, value: string) => setForm(current => ({ ...current, [key]: value }));
+  const submit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const data: BookingInput = {
+      customerName: form.customerName.trim(),
+      customerEmail: form.customerEmail.trim(),
+      customerPhone: form.customerPhone.trim(),
+      pickupAddress: form.pickupAddress.trim(),
+      destinationAddress: form.destinationAddress.trim(),
+      scheduledDate: new Date(form.scheduledDate).toISOString(),
+      serviceType: form.serviceType,
+      totalPrice: Number(form.totalPrice),
+      vehicleId: form.vehicleId ? Number(form.vehicleId) : undefined,
+      driverId: form.driverId ? Number(form.driverId) : undefined,
+      notes: form.notes.trim() || undefined,
+    };
+    createBooking.mutate({ data }, {
+      onSuccess: (created) => {
+        refresh();
+        toast({ title: "Booking created", description: `Booking #${created.id} for ${data.customerName} has been saved.` });
+        onClose();
+      },
+      onError: error => toast({ title: "Couldn’t create booking", description: mutationRecovery(error, "Check the details and try again."), variant: "destructive" }),
+    });
+  };
+  return <DialogFrame title="Add booking" description="Record a confirmed customer move directly in the operations desk." onClose={onClose} wide>
+    <form onSubmit={submit} className="space-y-5 p-5 sm:p-6">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Customer name"><input required value={form.customerName} onChange={e => set("customerName", e.target.value)} className={inputClass} autoFocus /></Field>
+        <Field label="Email"><input required type="email" value={form.customerEmail} onChange={e => set("customerEmail", e.target.value)} className={inputClass} /></Field>
+        <Field label="Phone"><input required type="tel" value={form.customerPhone} onChange={e => set("customerPhone", e.target.value)} className={inputClass} /></Field>
+        <Field label="Move date"><input required type="date" value={form.scheduledDate} onChange={e => set("scheduledDate", e.target.value)} className={inputClass} /></Field>
+        <Field label="Collection address"><input required value={form.pickupAddress} onChange={e => set("pickupAddress", e.target.value)} className={inputClass} /></Field>
+        <Field label="Delivery address"><input required value={form.destinationAddress} onChange={e => set("destinationAddress", e.target.value)} className={inputClass} /></Field>
+        <Field label="Service"><select value={form.serviceType} onChange={e => set("serviceType", e.target.value)} className={selectClass}>{Object.entries(SERVICE_NAMES).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></Field>
+        <Field label="Total price (EUR)"><input required min="0" step="0.01" type="number" value={form.totalPrice} onChange={e => set("totalPrice", e.target.value)} className={inputClass} /></Field>
+        <Field label="Assign driver" hint="Optional — can be assigned later"><select value={form.driverId} onChange={e => set("driverId", e.target.value)} className={selectClass}><option value="">Unassigned</option>{drivers.map(d => <option key={d.id} value={d.id}>{d.name} · {d.city}</option>)}</select></Field>
+        <Field label="Assign vehicle" hint="Optional — can be assigned later"><select value={form.vehicleId} onChange={e => set("vehicleId", e.target.value)} className={selectClass}><option value="">Unassigned</option>{vehicles.map(v => <option key={v.id} value={v.id}>{v.plateNumber} · {v.model}</option>)}</select></Field>
+        <Field label="Notes"><textarea rows={3} value={form.notes} onChange={e => set("notes", e.target.value)} className={`${inputClass} resize-y py-2`} placeholder="Optional operations note" /></Field>
+      </div>
+      <div className="flex justify-end gap-2 border-t border-[#eee9df] pt-4"><ActionButton variant="quiet" onClick={onClose}>Cancel</ActionButton><ActionButton type="submit" disabled={createBooking.isPending} testId="button-save-new-booking">{createBooking.isPending && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}Create booking</ActionButton></div>
+    </form>
+  </DialogFrame>;
+}
+
 function EntityForm({ dialog, onClose, refresh }: { dialog: Exclude<EntityDialog, null>; onClose: () => void; refresh: () => void }) {
   const { toast } = useToast();
   const isDriver = dialog.kind === "driver";
@@ -350,11 +406,15 @@ function Overview({ summary, summaryLoading, summaryError, retrySummary, booking
   </div>;
 }
 
-function Bookings({ drivers, vehicles, onEdit }: { drivers: Driver[]; vehicles: Vehicle[]; onEdit: (booking: Booking) => void }) {
-  const query = useListBookings();
+function Bookings({ drivers, vehicles, onEdit, onAdd }: { drivers: Driver[]; vehicles: Vehicle[]; onEdit: (booking: Booking) => void; onAdd: () => void }) {
+  const query = useListBookings(); const queryClient = useQueryClient(); const remove = useDeleteBooking(); const { toast } = useToast();
   const [search, setSearch] = useState("");
   const rows = useMemo(() => (query.data ?? []).filter(b => `${b.customerName} ${b.customerEmail} ${b.pickupAddress} ${b.destinationAddress} ${b.id}`.toLowerCase().includes(search.toLowerCase())), [query.data, search]);
-  return <Panel><PanelHeading eyebrow="Move coordination" title="Bookings" aside={<TableSearch value={search} onChange={setSearch} placeholder="Search bookings" />} />
+  const del = (booking: Booking) => {
+    if (!window.confirm(`Delete booking #${booking.id} for ${booking.customerName}? This cannot be undone.`)) return;
+    remove.mutate({ id: booking.id }, { onSuccess: () => { queryClient.invalidateQueries({ queryKey: getListBookingsQueryKey() }); toast({ title: "Booking deleted", description: `Booking #${booking.id} has been removed.` }); }, onError: error => toast({ title: "Couldn’t delete booking", description: mutationRecovery(error, "The booking was not removed. Try again."), variant: "destructive" }) });
+  };
+  return <Panel><PanelHeading eyebrow="Move coordination" title="Bookings" aside={<div className="flex w-full flex-wrap gap-2 sm:w-auto"><TableSearch value={search} onChange={setSearch} placeholder="Search bookings" /><ActionButton onClick={onAdd}><Plus className="h-3.5 w-3.5" />Add booking</ActionButton></div>} />
     <QueryState loading={query.isLoading} error={query.isError} retry={() => query.refetch()} label="bookings" />
     {!query.isLoading && !query.isError && rows.length > 0 && <div className="overflow-x-auto"><table className="w-full min-w-[860px] text-left">
       <thead><tr className="border-b border-[#eee9df] text-[9px] font-bold uppercase tracking-[.13em] text-[#9a9488]"><th className="px-5 py-3 sm:px-6">Customer / route</th><th className="px-4 py-3">Move date</th><th className="px-4 py-3">Crew & vehicle</th><th className="px-4 py-3">Value</th><th className="px-4 py-3">Status</th><th className="px-5 py-3 sm:px-6"><span className="sr-only">Actions</span></th></tr></thead>
@@ -365,7 +425,7 @@ function Bookings({ drivers, vehicles, onEdit }: { drivers: Driver[]; vehicles: 
           <td className="px-4 py-4 text-[11px] text-[#65645b]">{dateLabel(b.scheduledDate)}</td>
           <td className="px-4 py-4"><p className="text-[11px] text-[#55564f]">{driver?.name ?? <span className="text-[#aaa397]">Unassigned</span>}</p><p className="mt-1 font-mono text-[10px] text-[#989286]">{vehicle?.plateNumber ?? "No vehicle"}</p></td>
           <td className="px-4 py-4 text-[12px] font-bold text-[#3e4039]">{money(b.totalPrice)}</td><td className="px-4 py-4"><StatusPill value={b.status} /></td>
-          <td className="px-5 py-4 text-right sm:px-6"><button onClick={() => onEdit(b)} aria-label={`Edit booking ${b.id}`} className="rounded-lg p-2 text-[#7e796e] hover:bg-[#f1ece2] hover:text-[#bd542d]" data-testid={`button-edit-booking-${b.id}`}><Pencil className="h-3.5 w-3.5" /></button></td>
+          <td className="px-5 py-4 text-right sm:px-6"><div className="flex justify-end gap-1"><button onClick={() => onEdit(b)} aria-label={`Edit booking ${b.id}`} className="rounded-lg p-2 text-[#7e796e] hover:bg-[#f1ece2] hover:text-[#bd542d]" data-testid={`button-edit-booking-${b.id}`}><Pencil className="h-3.5 w-3.5" /></button><button onClick={() => del(b)} disabled={remove.isPending} aria-label={`Delete booking ${b.id}`} className="rounded-lg p-2 text-[#9b9287] hover:bg-rose-50 hover:text-rose-700" data-testid={`button-delete-booking-${b.id}`}><Trash2 className="h-3.5 w-3.5" /></button></div></td>
         </tr>;
       })}</tbody></table></div>}
     {!query.isLoading && !query.isError && !rows.length && <EmptyState title={search ? "No matching bookings" : "No bookings on file"} detail={search ? "Try another customer name, address, email or booking number." : "Confirmed customer moves will appear here."} />}
@@ -373,16 +433,20 @@ function Bookings({ drivers, vehicles, onEdit }: { drivers: Driver[]; vehicles: 
 }
 
 function Quotes({ onEdit }: { onEdit: (quote: Quote) => void }) {
-  const query = useListQuotes();
+  const query = useListQuotes(); const queryClient = useQueryClient(); const remove = useDeleteQuote(); const { toast } = useToast();
   const [search, setSearch] = useState("");
   const rows = useMemo(() => (query.data ?? []).filter(q => `${q.customerName} ${q.customerEmail} ${q.pickupAddress} ${q.destinationAddress} ${q.id}`.toLowerCase().includes(search.toLowerCase())), [query.data, search]);
+  const del = (quote: Quote) => {
+    if (!window.confirm(`Delete quote #${quote.id} from ${quote.customerName}? This cannot be undone.`)) return;
+    remove.mutate({ id: quote.id }, { onSuccess: () => { queryClient.invalidateQueries({ queryKey: getListQuotesQueryKey() }); toast({ title: "Quote deleted", description: `Quote #${quote.id} has been removed.` }); }, onError: error => toast({ title: "Couldn’t delete quote", description: mutationRecovery(error, "The quote was not removed. Try again."), variant: "destructive" }) });
+  };
   return <Panel><PanelHeading eyebrow="Customer requests" title="Quote requests" aside={<TableSearch value={search} onChange={setSearch} placeholder="Search quote requests" />} />
     <QueryState loading={query.isLoading} error={query.isError} retry={() => query.refetch()} label="quotes" />
     {!query.isLoading && !query.isError && rows.length > 0 && <div className="overflow-x-auto"><table className="w-full min-w-[790px] text-left">
       <thead><tr className="border-b border-[#eee9df] text-[9px] font-bold uppercase tracking-[.13em] text-[#9a9488]"><th className="px-5 py-3 sm:px-6">Customer / route</th><th className="px-4 py-3">Move size</th><th className="px-4 py-3">Estimate</th><th className="px-4 py-3">Received</th><th className="px-4 py-3">Status</th><th className="px-5 py-3 sm:px-6"><span className="sr-only">Actions</span></th></tr></thead>
       <tbody className="divide-y divide-[#f0ece5]">{rows.map(q => <tr key={q.id} className="transition-colors hover:bg-[#fcfaf6]" data-testid={`admin-quote-row-${q.id}`}>
         <td className="max-w-[290px] px-5 py-4 sm:px-6"><p className="text-[12px] font-semibold text-[#373832]">{q.customerName} <span className="ml-1 font-mono text-[10px] font-normal text-[#aaa397]">#{q.id}</span></p><p className="mt-1 truncate text-[10px] text-[#898478]">{q.pickupAddress}<span className="px-1 text-[#c1baad]">→</span>{q.destinationAddress}</p><p className="mt-1 text-[10px] text-[#aaa397]">{q.customerEmail} · {q.customerPhone}</p></td>
-        <td className="px-4 py-4 text-[11px] capitalize text-[#65645b]">{q.apartmentSize}<span className="mt-1 block text-[10px] text-[#aaa397]">{q.rooms} rooms</span></td><td className="px-4 py-4 text-[12px] font-bold text-[#3e4039]">{money(q.estimatedPrice)}</td><td className="px-4 py-4 text-[11px] text-[#65645b]">{dateLabel(q.createdAt)}</td><td className="px-4 py-4"><StatusPill value={q.status} /></td><td className="px-5 py-4 text-right sm:px-6"><button onClick={() => onEdit(q)} aria-label={`Edit quote ${q.id}`} className="rounded-lg p-2 text-[#7e796e] hover:bg-[#f1ece2] hover:text-[#bd542d]" data-testid={`button-edit-quote-${q.id}`}><Pencil className="h-3.5 w-3.5" /></button></td>
+        <td className="px-4 py-4 text-[11px] capitalize text-[#65645b]">{q.apartmentSize}<span className="mt-1 block text-[10px] text-[#aaa397]">{q.rooms} rooms</span></td><td className="px-4 py-4 text-[12px] font-bold text-[#3e4039]">{money(q.estimatedPrice)}</td><td className="px-4 py-4 text-[11px] text-[#65645b]">{dateLabel(q.createdAt)}</td><td className="px-4 py-4"><StatusPill value={q.status} /></td><td className="px-5 py-4 text-right sm:px-6"><div className="flex justify-end gap-1"><button onClick={() => onEdit(q)} aria-label={`Edit quote ${q.id}`} className="rounded-lg p-2 text-[#7e796e] hover:bg-[#f1ece2] hover:text-[#bd542d]" data-testid={`button-edit-quote-${q.id}`}><Pencil className="h-3.5 w-3.5" /></button><button onClick={() => del(q)} disabled={remove.isPending} aria-label={`Delete quote ${q.id}`} className="rounded-lg p-2 text-[#9b9287] hover:bg-rose-50 hover:text-rose-700" data-testid={`button-delete-quote-${q.id}`}><Trash2 className="h-3.5 w-3.5" /></button></div></td>
       </tr>)}</tbody></table></div>}
     {!query.isLoading && !query.isError && !rows.length && <EmptyState title={search ? "No matching quote requests" : "No quote requests"} detail={search ? "Try a different customer name, route or email address." : "Customer quote requests will appear here."} />}
   </Panel>;
@@ -599,6 +663,7 @@ export default function Admin() {
   const [dialog, setDialog] = useState<EntityDialog>(null);
   const [bookingToEdit, setBookingToEdit] = useState<Booking | null>(null);
   const [quoteToEdit, setQuoteToEdit] = useState<Quote | null>(null);
+  const [creatingBooking, setCreatingBooking] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
   const queryClient = useQueryClient();
   const summaryQuery = useGetDashboardSummary();
@@ -664,7 +729,7 @@ export default function Admin() {
         {mobileNav && <nav aria-label="Admin navigation" className="mb-5 grid grid-cols-2 gap-2 rounded-xl border border-[#e7e1d6] bg-[#fffefa] p-2 md:hidden">{NAV.map(item => { const Icon = item.icon; return <button key={item.key} onClick={() => selectPage(item.key)} className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs font-semibold ${activePage === item.key ? "bg-[#f8e9df] text-[#b74c25]" : "text-[#777468] hover:bg-[#f6f2ea]"}`} data-testid={`mobile-admin-tab-${item.key}`}><Icon className="h-4 w-4" />{item.name}{counts[item.key] != null && <span className="ml-auto font-mono text-[10px]">{counts[item.key]}</span>}</button>; })}</nav>}
         <motion.div key={activePage} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .2 }}>
           {activePage === "overview" && <Overview summary={summaryQuery.data} summaryLoading={summaryQuery.isLoading} summaryError={summaryQuery.isError} retrySummary={() => summaryQuery.refetch()} bookings={bookingQuery.data ?? []} quotes={quoteQuery.data ?? []} bookingsLoading={bookingQuery.isLoading} bookingsError={bookingQuery.isError} retryBookings={() => bookingQuery.refetch()} quotesLoading={quoteQuery.isLoading} quotesError={quoteQuery.isError} retryQuotes={() => quoteQuery.refetch()} navigate={selectPage} />}
-          {activePage === "bookings" && <Bookings drivers={driverQuery.data ?? []} vehicles={vehicleQuery.data ?? []} onEdit={setBookingToEdit} />}
+          {activePage === "bookings" && <Bookings drivers={driverQuery.data ?? []} vehicles={vehicleQuery.data ?? []} onEdit={setBookingToEdit} onAdd={() => setCreatingBooking(true)} />}
           {activePage === "quotes" && <Quotes onEdit={setQuoteToEdit} />}
           {activePage === "whatsapp" && <Inbox conversations={whatsappQuery.data} isLoading={whatsappQuery.isLoading} isError={whatsappQuery.isError} refetch={() => whatsappQuery.refetch()} />}
           {activePage === "drivers" && <Drivers onEdit={setDriverDialog} />}
@@ -674,6 +739,7 @@ export default function Admin() {
       </main>
     </div>
     {bookingToEdit && <BookingEditor key={bookingToEdit.id} booking={bookingToEdit} drivers={driverQuery.data ?? []} vehicles={vehicleQuery.data ?? []} onClose={() => setBookingToEdit(null)} refresh={refresh} />}
+    {creatingBooking && <BookingCreator drivers={driverQuery.data ?? []} vehicles={vehicleQuery.data ?? []} onClose={() => setCreatingBooking(false)} refresh={refresh} />}
     {quoteToEdit && <QuoteEditor key={quoteToEdit.id} quote={quoteToEdit} onClose={() => setQuoteToEdit(null)} refresh={refresh} />}
     {dialog && <EntityForm key={`${dialog.kind}-${dialog.record?.id ?? "new"}`} dialog={dialog} onClose={() => setDialog(null)} refresh={refresh} />}
   </div>;

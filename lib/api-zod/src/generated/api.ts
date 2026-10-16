@@ -137,6 +137,14 @@ export const UpdateQuoteResponse = zod.object({
 
 
 /**
+ * @summary Delete a quote
+ */
+export const DeleteQuoteParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
  * @summary List all bookings
  */
 export const ListBookingsResponseItem = zod.object({
@@ -147,6 +155,10 @@ export const ListBookingsResponseItem = zod.object({
   "customerPhone": zod.string(),
   "pickupAddress": zod.string(),
   "destinationAddress": zod.string(),
+  "pickupLat": zod.number().nullish().describe('Pickup coordinates from address autocomplete (null if manual entry)'),
+  "pickupLng": zod.number().nullish(),
+  "destinationLat": zod.number().nullish(),
+  "destinationLng": zod.number().nullish(),
   "scheduledDate": zod.coerce.date(),
   "status": zod.string().describe('confirmed, crew_assigned, loading, on_route, arriving, completed, cancelled'),
   "serviceType": zod.string().describe('apartment_move, student_move, office_move, storage, furniture, clearance, packing, warehouse'),
@@ -169,6 +181,10 @@ export const CreateBookingBody = zod.object({
   "customerPhone": zod.string(),
   "pickupAddress": zod.string(),
   "destinationAddress": zod.string(),
+  "pickupLat": zod.number().nullish().describe('Pickup coordinates from address autocomplete (null if manual entry)'),
+  "pickupLng": zod.number().nullish(),
+  "destinationLat": zod.number().nullish(),
+  "destinationLng": zod.number().nullish(),
   "scheduledDate": zod.coerce.date(),
   "serviceType": zod.string(),
   "vehicleId": zod.number().optional(),
@@ -193,6 +209,10 @@ export const GetBookingResponse = zod.object({
   "customerPhone": zod.string(),
   "pickupAddress": zod.string(),
   "destinationAddress": zod.string(),
+  "pickupLat": zod.number().nullish().describe('Pickup coordinates from address autocomplete (null if manual entry)'),
+  "pickupLng": zod.number().nullish(),
+  "destinationLat": zod.number().nullish(),
+  "destinationLng": zod.number().nullish(),
   "scheduledDate": zod.coerce.date(),
   "status": zod.string().describe('confirmed, crew_assigned, loading, on_route, arriving, completed, cancelled'),
   "serviceType": zod.string().describe('apartment_move, student_move, office_move, storage, furniture, clearance, packing, warehouse'),
@@ -227,6 +247,10 @@ export const UpdateBookingResponse = zod.object({
   "customerPhone": zod.string(),
   "pickupAddress": zod.string(),
   "destinationAddress": zod.string(),
+  "pickupLat": zod.number().nullish().describe('Pickup coordinates from address autocomplete (null if manual entry)'),
+  "pickupLng": zod.number().nullish(),
+  "destinationLat": zod.number().nullish(),
+  "destinationLng": zod.number().nullish(),
   "scheduledDate": zod.coerce.date(),
   "status": zod.string().describe('confirmed, crew_assigned, loading, on_route, arriving, completed, cancelled'),
   "serviceType": zod.string().describe('apartment_move, student_move, office_move, storage, furniture, clearance, packing, warehouse'),
@@ -235,6 +259,14 @@ export const UpdateBookingResponse = zod.object({
   "totalPrice": zod.number(),
   "notes": zod.string().nullish(),
   "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a booking
+ */
+export const DeleteBookingParams = zod.object({
+  "id": zod.coerce.number()
 })
 
 
@@ -596,7 +628,11 @@ export const GetTrackingResponse = zod.object({
   "routeProgress": zod.number().describe('0-100 percentage'),
   "weatherCondition": zod.string(),
   "hasTrafficDelay": zod.boolean().optional(),
-  "updatedAt": zod.coerce.date()
+  "updatedAt": zod.coerce.date(),
+  "pickupLat": zod.number().nullish().describe('Stored pickup coordinates (null when not captured at booking time)'),
+  "pickupLng": zod.number().nullish(),
+  "destinationLat": zod.number().nullish(),
+  "destinationLng": zod.number().nullish()
 })
 
 
@@ -619,9 +655,35 @@ export const ListActiveTrackingResponseItem = zod.object({
   "routeProgress": zod.number().describe('0-100 percentage'),
   "weatherCondition": zod.string(),
   "hasTrafficDelay": zod.boolean().optional(),
-  "updatedAt": zod.coerce.date()
+  "updatedAt": zod.coerce.date(),
+  "pickupLat": zod.number().nullish().describe('Stored pickup coordinates (null when not captured at booking time)'),
+  "pickupLng": zod.number().nullish(),
+  "destinationLat": zod.number().nullish(),
+  "destinationLng": zod.number().nullish()
 })
 export const ListActiveTrackingResponse = zod.array(ListActiveTrackingResponseItem)
+
+
+/**
+ * Public endpoint. A customer who lost their tracking reference can find it again by providing the email and/or phone number they booked with. Provide at least one of the two; when both are given, both must match. Phone matching is tolerant of formats (+43 vs 0-prefix, spaces, etc).
+
+ * @summary Recover booking references using the email or phone used at booking
+ */
+export const LookupBookingsQueryParams = zod.object({
+  "email": zod.coerce.string().optional(),
+  "phone": zod.coerce.string().optional()
+})
+
+export const LookupBookingsResponseItem = zod.object({
+  "bookingId": zod.number(),
+  "status": zod.string().describe('confirmed, crew_assigned, loading, on_route, arriving, completed, cancelled'),
+  "pickupAddress": zod.string(),
+  "destinationAddress": zod.string(),
+  "scheduledDate": zod.coerce.date(),
+  "serviceType": zod.string(),
+  "createdAt": zod.coerce.date().optional()
+})
+export const LookupBookingsResponse = zod.array(LookupBookingsResponseItem)
 
 
 /**
@@ -665,6 +727,10 @@ export const GetRecentBookingsResponseItem = zod.object({
   "customerPhone": zod.string(),
   "pickupAddress": zod.string(),
   "destinationAddress": zod.string(),
+  "pickupLat": zod.number().nullish().describe('Pickup coordinates from address autocomplete (null if manual entry)'),
+  "pickupLng": zod.number().nullish(),
+  "destinationLat": zod.number().nullish(),
+  "destinationLng": zod.number().nullish(),
   "scheduledDate": zod.coerce.date(),
   "status": zod.string().describe('confirmed, crew_assigned, loading, on_route, arriving, completed, cancelled'),
   "serviceType": zod.string().describe('apartment_move, student_move, office_move, storage, furniture, clearance, packing, warehouse'),

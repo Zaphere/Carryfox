@@ -3,6 +3,7 @@ import { eq, desc } from "drizzle-orm";
 import { db, quotesTable } from "@workspace/db";
 import {
   CreateQuoteBody,
+  DeleteQuoteParams,
   GetQuoteParams,
   GetQuoteResponse,
   ListQuotesResponse,
@@ -108,6 +109,26 @@ router.patch("/quotes/:id", requireOwner, async (req, res): Promise<void> => {
   }
 
   res.json(UpdateQuoteResponse.parse(quote));
+});
+
+router.delete("/quotes/:id", requireOwner, async (req, res): Promise<void> => {
+  const params = DeleteQuoteParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const [deleted] = await db
+    .delete(quotesTable)
+    .where(eq(quotesTable.id, params.data.id))
+    .returning({ id: quotesTable.id });
+
+  if (!deleted) {
+    res.status(404).json({ error: "Quote not found" });
+    return;
+  }
+
+  res.sendStatus(204);
 });
 
 export default router;

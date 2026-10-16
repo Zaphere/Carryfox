@@ -23,6 +23,7 @@ import type {
   AnalyticsData,
   Booking,
   BookingInput,
+  BookingReference,
   BookingUpdate,
   DashboardSummary,
   Driver,
@@ -30,6 +31,7 @@ import type {
   DriverUpdate,
   FleetStatus,
   HealthStatus,
+  LookupBookingsParams,
   Quote,
   QuoteInput,
   QuoteUpdate,
@@ -433,6 +435,76 @@ export const useUpdateQuote = <TError = ErrorType<void>,
       return useMutation(getUpdateQuoteMutationOptions(options));
     }
 
+export const getDeleteQuoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/quotes/${id}`
+}
+
+/**
+ * @summary Delete a quote
+ */
+export const deleteQuote = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteQuoteUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteQuoteMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteQuote>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteQuote>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteQuote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteQuote>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteQuote(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteQuoteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteQuote>>>
+
+    export type DeleteQuoteMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a quote
+ */
+export const useDeleteQuote = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteQuote>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteQuote>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteQuoteMutationOptions(options));
+    }
+
 export const getListBookingsUrl = () => {
 
 
@@ -728,6 +800,76 @@ export const useUpdateBooking = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateBookingMutationOptions(options));
+    }
+
+export const getDeleteBookingUrl = (id: number,) => {
+
+
+
+
+  return `/api/bookings/${id}`
+}
+
+/**
+ * @summary Delete a booking
+ */
+export const deleteBooking = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteBookingUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteBookingMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBooking>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteBooking>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteBooking'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteBooking>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteBooking(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteBookingMutationResult = NonNullable<Awaited<ReturnType<typeof deleteBooking>>>
+
+    export type DeleteBookingMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a booking
+ */
+export const useDeleteBooking = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBooking>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteBooking>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteBookingMutationOptions(options));
     }
 
 export const getSendBookingWhatsAppStatusUrl = (id: number,) => {
@@ -2127,6 +2269,92 @@ export function useListActiveTracking<TData = Awaited<ReturnType<typeof listActi
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListActiveTrackingQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getLookupBookingsUrl = (params?: LookupBookingsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/tracking/lookup?${stringifiedParams}` : `/api/tracking/lookup`
+}
+
+/**
+ * Public endpoint. A customer who lost their tracking reference can find it again by providing the email and/or phone number they booked with. Provide at least one of the two; when both are given, both must match. Phone matching is tolerant of formats (+43 vs 0-prefix, spaces, etc).
+
+ * @summary Recover booking references using the email or phone used at booking
+ */
+export const lookupBookings = async (params?: LookupBookingsParams, options?: RequestInit): Promise<BookingReference[]> => {
+
+  return customFetch<BookingReference[]>(getLookupBookingsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getLookupBookingsQueryKey = (params?: LookupBookingsParams,) => {
+    return [
+    `/api/tracking/lookup`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getLookupBookingsQueryOptions = <TData = Awaited<ReturnType<typeof lookupBookings>>, TError = ErrorType<unknown>>(params?: LookupBookingsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof lookupBookings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getLookupBookingsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof lookupBookings>>> = ({ signal }) => lookupBookings(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof lookupBookings>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type LookupBookingsQueryResult = NonNullable<Awaited<ReturnType<typeof lookupBookings>>>
+export type LookupBookingsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Recover booking references using the email or phone used at booking
+ */
+
+export function useLookupBookings<TData = Awaited<ReturnType<typeof lookupBookings>>, TError = ErrorType<unknown>>(
+ params?: LookupBookingsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof lookupBookings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getLookupBookingsQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

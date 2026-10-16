@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowRight, ArrowLeft, Check, Truck } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, Truck, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
@@ -21,7 +21,10 @@ const SERVICE_PRICES = [350, 180, 800, 120, 200, 450, 150, 1200];
 
 const schema = z.object({
   serviceType: z.string().min(1, "Select a service"),
-  scheduledDate: z.string().min(1, "Select a date"),
+  scheduledDate: z.string().min(1, "Select a date").refine(
+    value => !Number.isNaN(new Date(value).getTime()),
+    "Pick a valid date and time",
+  ),
   pickupAddress: z.string().min(5, "Pickup address required"),
   destinationAddress: z.string().min(5, "Destination required"),
   customerName: z.string().min(2, "Name required"),
@@ -36,6 +39,11 @@ export default function Book() {
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [bookingId, setBookingId] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
+  // Coordinates from the address autocomplete, stored with the booking so the
+  // tracking map can plot the exact route without geocoding later.
+  const [pickupCoords, setPickupCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [destinationCoords, setDestinationCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { toast } = useToast();
   const createBooking = useCreateBooking();
   const { t } = useT();
@@ -80,6 +88,10 @@ export default function Book() {
         ...data,
         scheduledDate: new Date(data.scheduledDate).toISOString(),
         totalPrice: service?.price ?? 0,
+        pickupLat: pickupCoords?.lat ?? null,
+        pickupLng: pickupCoords?.lng ?? null,
+        destinationLat: destinationCoords?.lat ?? null,
+        destinationLng: destinationCoords?.lng ?? null,
       },
     }, {
       onSuccess: (res) => {
@@ -89,6 +101,17 @@ export default function Book() {
       onError: () => toast({ title: "Error", description: "Booking failed. Try again.", variant: "destructive" }),
     });
   });
+
+  const copyReference = async () => {
+    if (bookingId == null) return;
+    try {
+      await navigator.clipboard.writeText(String(bookingId));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: "Copy failed", description: `Your reference is #${bookingId}`, variant: "destructive" });
+    }
+  };
 
   if (submitted) {
     return (
@@ -106,13 +129,31 @@ export default function Book() {
             <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
             CONFIRMED
           </div>
-          <h2 className="text-4xl font-black uppercase tracking-tighter mb-3">{b.bookingRef} #{bookingId}</h2>
+          {/* Tracking ticket — the reference the customer needs to track */}
+          <div className="mb-6 rounded-xl border border-primary/40 bg-primary/10 px-5 py-4">
+            <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">{b.bookingRef}</p>
+            <button
+              type="button"
+              onClick={copyReference}
+              className="mx-auto flex items-center gap-3 rounded-lg px-3 py-1 transition-colors hover:bg-white/5"
+              data-testid="button-copy-reference"
+              title="Copy reference"
+            >
+              <span className="text-4xl font-black text-primary tracking-tight">#{bookingId}</span>
+              {copied
+                ? <Check className="h-5 w-5 text-green-400" />
+                : <Copy className="h-5 w-5 text-muted-foreground" />}
+            </button>
+            <p className="text-[11px] text-muted-foreground mt-1" data-testid="text-reference-hint">
+              {copied ? "Copied to clipboard" : "Click to copy — you'll need this to track your booking"}
+            </p>
+          </div>
           <p className="text-muted-foreground text-lg mb-2">{b.successTitle}</p>
           <p className="text-muted-foreground mb-2">{selectedService?.label}</p>
           <p className="text-3xl font-black text-primary mb-8">€{selectedService?.price}</p>
           <p className="text-muted-foreground mb-8 text-sm">{b.successSub}</p>
           <div className="flex gap-4 justify-center">
-            <Link href="/track">
+            <Link href={bookingId != null ? `/track?id=${bookingId}` : "/track"}>
               <Button size="lg" data-testid="button-post-booking-track">{b.trackBooking} <ArrowRight className="ml-2 h-4 w-4" /></Button>
             </Link>
             <Link href="/">
@@ -203,7 +244,8 @@ export default function Book() {
                               value={field.value ? (field.value.split("T")[1] ?? "09:00") : "09:00"}
                               onChange={e => {
                                 const date = field.value?.split("T")[0] ?? "";
-                                if (date) field.onChange(`${date}T${e.target.value}`);
+                                // Ignore a cleared/partial time so we never write "2026-10-16T" (invalid).
+                                if (date && e.target.value) field.onChange(`${date}T${e.target.value}`);
                               }}
                               className="flex h-10 w-full rounded-md border border-white/20 bg-background/50 px-3 py-2 text-sm text-white ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                               style={{ colorScheme: "dark" }}
@@ -221,6 +263,7 @@ export default function Book() {
                           <AddressAutocomplete
                             value={field.value}
                             onChange={field.onChange}
+                            onCoords={setPickupCoords}
                             placeholder="z.B. Mariahilfer Str. 45, 1060 Wien"
                             className="bg-background/50 border-white/20"
                             data-testid="input-pickup"
@@ -236,6 +279,7 @@ export default function Book() {
                           <AddressAutocomplete
                             value={field.value}
                             onChange={field.onChange}
+                            onCoords={setDestinationCoords}
                             placeholder="z.B. Praterstr. 15, 1020 Wien"
                             className="bg-background/50 border-white/20"
                             data-testid="input-destination"

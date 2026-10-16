@@ -80,6 +80,17 @@ export interface Booking {
   customerPhone: string;
   pickupAddress: string;
   destinationAddress: string;
+  /**
+     * Pickup coordinates from address autocomplete (null if manual entry)
+     * @nullable
+     */
+  pickupLat?: number | null;
+  /** @nullable */
+  pickupLng?: number | null;
+  /** @nullable */
+  destinationLat?: number | null;
+  /** @nullable */
+  destinationLng?: number | null;
   scheduledDate: string;
   /** confirmed, crew_assigned, loading, on_route, arriving, completed, cancelled */
   status: string;
@@ -102,6 +113,17 @@ export interface BookingInput {
   customerPhone: string;
   pickupAddress: string;
   destinationAddress: string;
+  /**
+     * Pickup coordinates from address autocomplete (null if manual entry)
+     * @nullable
+     */
+  pickupLat?: number | null;
+  /** @nullable */
+  pickupLng?: number | null;
+  /** @nullable */
+  destinationLat?: number | null;
+  /** @nullable */
+  destinationLng?: number | null;
   scheduledDate: string;
   serviceType: string;
   vehicleId?: number;
@@ -299,6 +321,17 @@ export interface VehicleUpdate {
   lastServiceDate?: string;
 }
 
+export interface BookingReference {
+  bookingId: number;
+  /** confirmed, crew_assigned, loading, on_route, arriving, completed, cancelled */
+  status: string;
+  pickupAddress: string;
+  destinationAddress: string;
+  scheduledDate: string;
+  serviceType: string;
+  createdAt?: string;
+}
+
 export interface TrackingInfo {
   bookingId: number;
   /** confirmed, crew_assigned, loading, on_route, arriving, completed */
@@ -320,6 +353,17 @@ export interface TrackingInfo {
   weatherCondition: string;
   hasTrafficDelay?: boolean;
   updatedAt: string;
+  /**
+     * Stored pickup coordinates (null when not captured at booking time)
+     * @nullable
+     */
+  pickupLat?: number | null;
+  /** @nullable */
+  pickupLng?: number | null;
+  /** @nullable */
+  destinationLat?: number | null;
+  /** @nullable */
+  destinationLng?: number | null;
 }
 
 export interface Service {
@@ -428,5 +472,10 @@ export type VerifyWhatsAppWebhookParams = {
 
 export type ReceiveWhatsAppWebhook200 = {
   received?: boolean;
+};
+
+export type LookupBookingsParams = {
+email?: string;
+phone?: string;
 };
 

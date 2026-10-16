@@ -3,17 +3,16 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Truck, MapPin, Phone, Clock, Gauge, Cloud,
-  AlertTriangle, CheckCircle2, Circle, Loader2, Search, Navigation, RefreshCw,
+  AlertTriangle, CheckCircle2, Circle, Loader2, Search, Navigation, RefreshCw, Mail,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useGetTracking, useListActiveTracking } from "@workspace/api-client-react";
-import { getGetTrackingQueryKey, getListActiveTrackingQueryKey } from "@workspace/api-client-react";
+import { useGetTracking, useListActiveTracking, useLookupBookings } from "@workspace/api-client-react";
+import { getGetTrackingQueryKey, getListActiveTrackingQueryKey, getLookupBookingsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useT } from "@/lib/i18n";
-import { useTheme } from "@/lib/theme";
 
 /* ─── Leaflet icon fix ─── */
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -67,13 +66,21 @@ const destIcon = L.divIcon({
   iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -34],
 });
 
-function MapController({ lat, lng }: { lat: number; lng: number }) {
+function FitBounds({ points, triggerKey }: { points: [number, number][]; triggerKey: string }) {
   const map = useMap();
-  const firstRun = useRef(true);
+  const lastKey = useRef<string | null>(null);
   useEffect(() => {
-    if (firstRun.current) { map.setView([lat, lng], 13); firstRun.current = false; }
-    else { map.panTo([lat, lng], { animate: true, duration: 1.5 }); }
-  }, [lat, lng, map]);
+    if (points.length === 0) return;
+    // Fit once per booking/route change — jittered truck updates must not
+    // keep re-zooming the map.
+    if (lastKey.current === triggerKey) return;
+    lastKey.current = triggerKey;
+    if (points.length === 1) {
+      map.setView(points[0], 13);
+    } else {
+      map.fitBounds(L.latLngBounds(points), { padding: [60, 60], maxZoom: 15 });
+    }
+  }, [points, triggerKey, map]);
   return null;
 }
 
@@ -81,7 +88,8 @@ const STATUS_KEYS = ["confirmed", "crew_assigned", "loading", "on_route", "arriv
 
 async function geocode(address: string): Promise<[number, number] | null> {
   try {
-    const params = new URLSearchParams({ q: address, format: "json", countrycodes: "at", limit: "1" });
+    // No country restriction: manually entered addresses may be anywhere.
+    const params = new URLSearchParams({ q: address, format: "json", limit: "1" });
     const r = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
       headers: { "User-Agent": "Carryfox.at/1.0" },
     });
@@ -98,9 +106,24 @@ export default function Track() {
   const [pickupCoords, setPickupCoords] = useState<[number, number] | null>(null);
   const [destCoords, setDestCoords]   = useState<[number, number] | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  // "Find my booking" recovery — lookup by the email + phone used at booking.
+  const [showLookup, setShowLookup]   = useState(false);
+  const [lookupEmail, setLookupEmail] = useState("");
+  const [lookupPhone, setLookupPhone] = useState("");
+  const [lookupQuery, setLookupQuery] = useState<{ email: string; phone: string } | null>(null);
   const { t }    = useT();
-  const { theme } = useTheme();
   const tr = t.track;
+
+  // Deep link: /track?id=42 (from the booking success screen) auto-loads.
+  useEffect(() => {
+    const idParam = new URLSearchParams(window.location.search).get("id");
+    if (!idParam) return;
+    const id = parseInt(idParam, 10);
+    if (!isNaN(id) && id > 0) {
+      setBookingId(id);
+      setInputVal(String(id));
+    }
+  }, []);
 
   const STATUSES = STATUS_KEYS.map((key, i) => ({ key, label: tr.statusLabels[i] }));
 
@@ -108,6 +131,14 @@ export default function Track() {
   const { data: tracking, isLoading, error, refetch } = useGetTracking(
     bookingId ?? 0,
     { query: { enabled: !!bookingId, queryKey: getGetTrackingQueryKey(bookingId ?? 0), refetchInterval: 6000 } }
+  );
+  const lookupParams = {
+    email: lookupQuery?.email || undefined,
+    phone: lookupQuery?.phone || undefined,
+  };
+  const { data: lookupResults, isFetching: lookupFetching, error: lookupError } = useLookupBookings(
+    lookupParams,
+    { query: { enabled: !!lookupQuery, queryKey: getLookupBookingsQueryKey(lookupParams) } },
   );
 
   useEffect(() => {
@@ -120,13 +151,23 @@ export default function Track() {
     return () => clearInterval(interval);
   }, [tracking, refetch, queryClient]);
 
+  // Prefer coordinates stored at booking time (instant, no external service);
+  // fall back to Nominatim geocoding for manual/admin-entered addresses.
   useEffect(() => {
     if (!tracking) return;
     setPickupCoords(null);
     setDestCoords(null);
-    geocode(tracking.pickupAddress).then(c => c && setPickupCoords(c));
-    geocode(tracking.destinationAddress).then(c => c && setDestCoords(c));
-  }, [tracking?.pickupAddress, tracking?.destinationAddress]);
+    if (tracking.pickupLat != null && tracking.pickupLng != null) {
+      setPickupCoords([tracking.pickupLat, tracking.pickupLng]);
+    } else {
+      geocode(tracking.pickupAddress).then(c => c && setPickupCoords(c));
+    }
+    if (tracking.destinationLat != null && tracking.destinationLng != null) {
+      setDestCoords([tracking.destinationLat, tracking.destinationLng]);
+    } else {
+      geocode(tracking.destinationAddress).then(c => c && setDestCoords(c));
+    }
+  }, [tracking?.pickupAddress, tracking?.destinationAddress, tracking?.pickupLat, tracking?.pickupLng, tracking?.destinationLat, tracking?.destinationLng]);
 
   const handleSearch = useCallback(() => {
     const id = parseInt(inputVal.trim(), 10);
@@ -138,13 +179,39 @@ export default function Track() {
     setInputVal(String(id));
   }, []);
 
-  const currentStatusIdx = STATUSES.findIndex(s => s.key === tracking?.status);
-  const truckPos: [number, number] | null = tracking ? [tracking.currentLat, tracking.currentLng] : null;
-  const routeLine: [number, number][] = [pickupCoords, truckPos, destCoords].filter(Boolean) as [number, number][];
+  const handleLookup = useCallback(() => {
+    const email = lookupEmail.trim();
+    const phone = lookupPhone.trim();
+    // Either field is enough — search by email, phone, or both.
+    if (email || phone) setLookupQuery({ email, phone });
+  }, [lookupEmail, lookupPhone]);
 
-  const mapTile = theme === "dark"
-    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-    : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+  const lookupReady = lookupEmail.trim().length > 0 || lookupPhone.trim().length > 0;
+
+  const currentStatusIdx = STATUSES.findIndex(s => s.key === tracking?.status);
+  // Truck display position: prefer the server's (interpolated along stored
+  // route coords). Bookings saved before coordinates existed fall back to
+  // client-side interpolation between the geocoded endpoints so the truck
+  // still sits on the route instead of at a default city centre.
+  const truckPos: [number, number] | null = (() => {
+    if (!tracking) return null;
+    const serverHasRoute = tracking.pickupLat != null && tracking.destinationLat != null;
+    if (!serverHasRoute && pickupCoords && destCoords) {
+      const t = Math.min(1, Math.max(0, tracking.routeProgress / 100));
+      return [
+        pickupCoords[0] + (destCoords[0] - pickupCoords[0]) * t + (Math.random() - 0.5) * 0.002,
+        pickupCoords[1] + (destCoords[1] - pickupCoords[1]) * t + (Math.random() - 0.5) * 0.002,
+      ];
+    }
+    return [tracking.currentLat, tracking.currentLng];
+  })();
+  const routeLine: [number, number][] = [pickupCoords, truckPos, destCoords].filter(Boolean) as [number, number][];
+  const fitTrigger = `${tracking?.bookingId ?? "none"}:${pickupCoords ? 1 : 0}${destCoords ? 1 : 0}`;
+
+  // Keyless raster tiles — CARTO's basemap CDN now requires an API key and
+  // returns an "API KEY REQUIRED" placeholder tile without one. OSM's standard
+  // tile server works keyless (fine for dev/testing under their usage policy).
+  const mapTile = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
   return (
     <div className="min-h-screen bg-background">
@@ -182,6 +249,78 @@ export default function Track() {
               <Search className="h-5 w-5" />
             </Button>
           </motion.div>
+
+          {/* Lost your reference? Recover it with booking details */}
+          <div className="mt-3 max-w-md">
+            <button
+              type="button"
+              onClick={() => setShowLookup(v => !v)}
+              className="text-xs text-primary hover:underline"
+              data-testid="button-toggle-lookup"
+            >
+              {showLookup ? "Hide lookup" : "Lost your reference? Find it with your email or phone"}
+            </button>
+            {showLookup && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-3 rounded-xl border border-border bg-card p-4 space-y-3"
+              >
+                <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground">
+                  <Mail className="h-3.5 w-3.5" /> Find my booking
+                </div>
+                <Input
+                  type="email"
+                  placeholder="Email you booked with (optional)"
+                  value={lookupEmail}
+                  onChange={e => setLookupEmail(e.target.value)}
+                  className="h-10 border-border bg-background"
+                  data-testid="input-lookup-email"
+                />
+                <Input
+                  type="tel"
+                  placeholder="Phone you booked with (optional)"
+                  value={lookupPhone}
+                  onChange={e => setLookupPhone(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleLookup()}
+                  className="h-10 border-border bg-background"
+                  data-testid="input-lookup-phone"
+                />
+                <Button className="w-full h-10" onClick={handleLookup} disabled={lookupFetching || !lookupReady} data-testid="button-lookup-search">
+                  {lookupFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Search className="h-4 w-4 mr-2" /> Find my bookings</>}
+                </Button>
+                {!lookupReady && (
+                  <p className="text-[11px] text-muted-foreground">Enter your email or phone — whichever you still have — to search.</p>
+                )}
+                {lookupError && (
+                  <p className="text-xs text-destructive">Lookup failed — please try again.</p>
+                )}
+                {!lookupFetching && lookupResults && lookupResults.length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    No bookings found. Check the details match what you entered when booking.
+                  </p>
+                )}
+                {lookupResults && lookupResults.length > 0 && (
+                  <div className="space-y-2">
+                    {lookupResults.map(r => (
+                      <button
+                        key={r.bookingId}
+                        onClick={() => handleSelectShipment(r.bookingId)}
+                        className="w-full text-left rounded-lg border border-primary/30 bg-primary/5 p-3 transition-colors hover:bg-primary/10"
+                        data-testid={`button-lookup-result-${r.bookingId}`}
+                      >
+                        <div className="flex justify-between items-center gap-2">
+                          <span className="font-bold text-primary">#{r.bookingId}</span>
+                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{r.status.replace(/_/g, " ")}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1 truncate">{r.pickupAddress} → {r.destinationAddress}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </div>
 
           {/* Active shipments chips */}
           {activeShipments && activeShipments.length > 0 && (
@@ -221,8 +360,16 @@ export default function Track() {
           )}
 
           {error && !isLoading && (
-            <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-8 text-center text-destructive">
-              Booking not found. Please check your booking ID.
+            <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-8 text-center text-destructive space-y-2">
+              <p>Booking not found. Please check your booking reference.</p>
+              <button
+                type="button"
+                onClick={() => setShowLookup(true)}
+                className="text-sm underline text-destructive/80 hover:text-destructive"
+                data-testid="button-error-open-lookup"
+              >
+                Lost your reference? Find it with your email or phone
+              </button>
             </div>
           )}
 
@@ -239,7 +386,9 @@ export default function Track() {
                 <Truck className="h-20 w-20 text-primary/25 mx-auto mb-4" />
               </motion.div>
               <p className="text-foreground text-xl font-bold mb-2">{tr.noBooking}</p>
-              <p className="text-muted-foreground text-sm mb-6">Enter your booking ID above, or select an active shipment.</p>
+              <p className="text-muted-foreground text-sm mb-6">
+                Enter your booking reference above — or use the email or phone finder if you've lost it.
+              </p>
               {activeShipments && activeShipments.length > 0 && (
                 <div className="flex gap-2 flex-wrap justify-center">
                   {activeShipments.slice(0, 3).map(s => (
@@ -274,10 +423,14 @@ export default function Track() {
                       zoom={12}
                       style={{ height: "100%", width: "100%" }}
                       zoomControl={true}
-                      attributionControl={false}
+                      attributionControl={true}
                     >
-                      <TileLayer url={mapTile} subdomains="abcd" maxZoom={20} />
-                      <MapController lat={truckPos[0]} lng={truckPos[1]} />
+                      <TileLayer
+                        url={mapTile}
+                        maxZoom={19}
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      />
+                      <FitBounds points={routeLine} triggerKey={fitTrigger} />
                       {routeLine.length >= 2 && (
                         <>
                           <Polyline positions={routeLine} pathOptions={{ color: "#ff6400", weight: 8, opacity: 0.15 }} />

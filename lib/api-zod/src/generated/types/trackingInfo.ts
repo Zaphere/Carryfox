@@ -27,4 +27,15 @@ export interface TrackingInfo {
   weatherCondition: string;
   hasTrafficDelay?: boolean;
   updatedAt: Date;
+  /**
+     * Stored pickup coordinates (null when not captured at booking time)
+     * @nullable
+     */
+  pickupLat?: number | null;
+  /** @nullable */
+  pickupLng?: number | null;
+  /** @nullable */
+  destinationLat?: number | null;
+  /** @nullable */
+  destinationLng?: number | null;
 }
