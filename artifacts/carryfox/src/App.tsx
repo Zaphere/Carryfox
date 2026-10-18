@@ -1,6 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { ClerkProvider, SignIn, SignUp, useAuth, useClerk } from "@clerk/react";
-import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
 import { Redirect, Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
@@ -19,15 +18,23 @@ import About from "@/pages/About";
 import NotFound from "@/pages/not-found";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
-const clerkPubKey = publishableKeyFromHost(
-  window.location.hostname,
-  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
-);
-const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
+const clerkPubKey = String(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? "");
+const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL || undefined;
 
-if (!clerkPubKey) {
-  throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY for Carryfox admin sign-in.");
+function isValidClerkPublishableKey(key: string): boolean {
+  if (!key || key.includes("REPLACE") || !/^pk_(test|live)_/.test(key)) return false;
+  try {
+    const payload = key.replace(/^pk_(test|live)_/, "");
+    const padded =
+      payload.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - (payload.length % 4)) % 4);
+    const decoded = atob(padded).replace(/\$$/, "");
+    return /^[A-Za-z0-9][A-Za-z0-9.-]*\.[A-Za-z]{2,}/.test(decoded);
+  } catch {
+    return false;
+  }
 }
+
+const hasValidClerkKey = isValidClerkPublishableKey(clerkPubKey);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -149,7 +156,27 @@ function RequireSignIn({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-function ProductRoutes() {
+function AuthUnavailable() {
+  return (
+    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-6">
+      <div className="max-w-md rounded-2xl border border-white/10 bg-[#131820] p-8 text-center">
+        <h1 className="text-2xl font-bold tracking-tight text-white">Admin sign-in is not configured</h1>
+        <p className="mt-3 text-sm text-slate-300">
+          Set real Clerk keys in the server <code className="text-orange-400">.env</code>, rebuild the frontend,
+          then reload. Public pages still work without them.
+        </p>
+        <a href={`${basePath || "/"}`} className="mt-6 inline-block text-orange-400 hover:text-orange-300">
+          Back to home
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function ProductRoutes({ requireAuth }: { requireAuth: boolean }) {
+  const gate = (page: ReactNode) =>
+    requireAuth ? <RequireSignIn>{page}</RequireSignIn> : <AuthUnavailable />;
+
   return (
     <Layout>
       <Switch>
@@ -157,12 +184,8 @@ function ProductRoutes() {
         <Route path="/quote" component={Quote} />
         <Route path="/track" component={Track} />
         <Route path="/services" component={Services} />
-        <Route path="/dashboard">
-          <RequireSignIn><Dashboard /></RequireSignIn>
-        </Route>
-        <Route path="/admin">
-          <RequireSignIn><Admin /></RequireSignIn>
-        </Route>
+        <Route path="/dashboard">{gate(<Dashboard />)}</Route>
+        <Route path="/admin">{gate(<Admin />)}</Route>
         <Route path="/book" component={Book} />
         <Route path="/about" component={About} />
         <Route component={NotFound} />
@@ -171,13 +194,31 @@ function ProductRoutes() {
   );
 }
 
-function Router() {
+function Router({ requireAuth }: { requireAuth: boolean }) {
   return (
     <Switch>
-      <Route path="/sign-in/*?" component={SignInPage} />
-      <Route path="/sign-up/*?" component={SignUpPage} />
-      <Route component={ProductRoutes} />
+      <Route path="/sign-in/*?" component={requireAuth ? SignInPage : AuthUnavailable} />
+      <Route path="/sign-up/*?" component={requireAuth ? SignUpPage : AuthUnavailable} />
+      <Route>{() => <ProductRoutes requireAuth={requireAuth} />}</Route>
     </Switch>
+  );
+}
+
+function AppProviders({
+  children,
+  withClerkListener,
+}: {
+  children: ReactNode;
+  withClerkListener: boolean;
+}) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      {withClerkListener ? <ClerkQueryClientCacheInvalidator /> : null}
+      <TooltipProvider>
+        {children}
+        <Toaster />
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 }
 
@@ -210,13 +251,9 @@ function ClerkApp() {
       routerPush={(to) => setLocation(stripBase(to))}
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
-      <QueryClientProvider client={queryClient}>
-        <ClerkQueryClientCacheInvalidator />
-        <TooltipProvider>
-          <Router />
-          <Toaster />
-        </TooltipProvider>
-      </QueryClientProvider>
+      <AppProviders withClerkListener>
+        <Router requireAuth />
+      </AppProviders>
     </ClerkProvider>
   );
 }
@@ -224,7 +261,13 @@ function ClerkApp() {
 function App() {
   return (
     <WouterRouter base={basePath}>
-      <ClerkApp />
+      {hasValidClerkKey ? (
+        <ClerkApp />
+      ) : (
+        <AppProviders withClerkListener={false}>
+          <Router requireAuth={false} />
+        </AppProviders>
+      )}
     </WouterRouter>
   );
 }

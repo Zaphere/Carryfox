@@ -12,9 +12,13 @@ if (Number.isNaN(port) || port <= 0) {
 }
 
 const basePath = process.env.BASE_PATH ?? "/";
+const repoRoot = path.resolve(import.meta.dirname, "..", "..");
 
 export default defineConfig({
   base: basePath,
+  // Root `.env` is what Hostinger/PM2 use. Without this, Vite only reads
+  // artifacts/carryfox/.env and bakes empty/placeholder Clerk keys into the SPA.
+  envDir: repoRoot,
   plugins: [
     react(),
     tailwindcss({ optimize: false }),
