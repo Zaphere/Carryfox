@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { MapPin, Calculator, BarChart3, Settings, Menu, X, ArrowRight, Sun, Moon, Info } from "lucide-react";
+import { MapPin, Calculator, BarChart3, Settings, Menu, X, ArrowRight, Sun, Moon, Info, LogOut } from "lucide-react";
 import { Truck } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -7,12 +7,15 @@ import logoDark from "/logo-dark.png";
 import logoLight from "/logo-light.png";
 import { useT } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
+import { useAuth, useClerk } from "@clerk/react";
 
 export default function Navbar() {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { t, lang, setLang } = useT();
   const { theme, toggle } = useTheme();
+  const { isSignedIn } = useAuth();
+  const { signOut } = useClerk();
 
   const links = [
     { href: "/services",   label: t.nav.services,   icon: <MapPin className="w-4 h-4 mr-2" /> },
@@ -79,6 +82,19 @@ export default function Navbar() {
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
 
+            {/* Sign out button (only shown when signed in) */}
+            {isSignedIn && (
+              <button
+                onClick={() => signOut(() => window.location.href = "/")}
+                className="flex h-9 items-center gap-2 rounded-full border border-border bg-muted/50 px-3 text-xs font-semibold text-muted-foreground transition-all hover:text-primary hover:border-primary/40"
+                data-testid="button-sign-out"
+                aria-label="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Sign out</span>
+              </button>
+            )}
+
             <Link href="/book">
               <Button className="h-10 gap-2 font-bold uppercase tracking-wider shadow-[0_0_20px_rgba(255,90,0,0.25)] hover:shadow-[0_0_30px_rgba(255,90,0,0.4)] transition-all" data-testid="button-book-now">
                 {t.nav.bookNow} <ArrowRight className="h-4 w-4" />
@@ -121,6 +137,20 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            {/* Sign out button in mobile menu (only shown when signed in) */}
+            {isSignedIn && (
+              <button
+                onClick={() => {
+                  signOut(() => window.location.href = "/");
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                data-testid="button-sign-out-mobile"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Sign out</span>
+              </button>
+            )}
             <div className="px-3 pt-2 flex items-center gap-3">
               <div className="flex items-center rounded-full border border-border bg-muted/50 p-0.5 text-xs font-semibold">
                 <button onClick={() => setLang("en")} className={`rounded-full px-3 py-1 ${lang === "en" ? "bg-primary text-white" : "text-muted-foreground"}`}>EN</button>

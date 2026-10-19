@@ -56,7 +56,7 @@ export default function Services() {
               {s.h1a}<br />
               <span className="text-primary">{s.h1b}</span>
             </h1>
-            <p className="text-xl text-gray-300 max-w-2xl">{s.sub}</p>
+            <p className="text-xl text-muted-foreground max-w-2xl">{s.sub}</p>
           </motion.div>
         </div>
       </section>
@@ -142,7 +142,7 @@ export default function Services() {
         </div>
         <div className="container relative z-10 mx-auto max-w-6xl text-center">
           <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4 text-white">{s.ctaH2}</h2>
-          <p className="text-gray-300 mb-8 text-lg">{s.ctaSub}</p>
+          <p className="text-muted-foreground mb-8 text-lg">{s.ctaSub}</p>
           <Link href="/quote">
             <Button size="lg" className="h-14 px-10 text-lg font-bold uppercase tracking-wider shadow-[0_0_30px_rgba(255,90,0,0.3)] hover:shadow-[0_0_50px_rgba(255,90,0,0.5)] transition-all">
               {s.ctaBtn} <ArrowRight className="ml-2 h-5 w-5" />

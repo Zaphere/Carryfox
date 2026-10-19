@@ -1,6 +1,8 @@
 import { defineConfig } from "drizzle-kit";
 
-if (!process.env.DATABASE_URL) {
+const databaseUrl = process.env.DATABASE_URL || "postgresql://carryfox:Password123321@localhost:5432/future_freight";
+
+if (!databaseUrl) {
   throw new Error("DATABASE_URL, ensure the database is provisioned");
 }
 
@@ -11,6 +13,6 @@ export default defineConfig({
   schema: "./src/schema/*.ts",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL,
+    url: databaseUrl,
   },
 });

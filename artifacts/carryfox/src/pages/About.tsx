@@ -111,7 +111,7 @@ export default function About() {
                 Austria Forward.
               </span>
             </h1>
-            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed font-light">
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-light">
               We didn't just build a moving company. We built the logistics experience Austria deserved — fast, transparent, and stress-free.
             </p>
           </motion.div>
@@ -191,7 +191,7 @@ export default function About() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                 <div className="absolute bottom-6 left-6 right-6">
-                  <div className="flex items-center gap-3 bg-black/70 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/10">
+                  <div className="flex items-center gap-3 bg-black/70 backdrop-blur-md rounded-2xl px-4 py-3 border border-border">
                     <div className="flex">
                       {"★★★★★".split("").map((_, i) => (
                         <span key={i} className="text-yellow-400 text-sm">★</span>
@@ -372,7 +372,7 @@ export default function About() {
                 Your Move.
               </span>
             </h2>
-            <p className="text-xl text-gray-300 mb-12 max-w-xl mx-auto">
+            <p className="text-xl text-muted-foreground mb-12 max-w-xl mx-auto">
               Get a quote in 60 seconds. Book in 2 minutes. Relax — we'll handle the rest.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -388,7 +388,7 @@ export default function About() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="h-16 px-12 text-xl font-bold uppercase tracking-widest border-white/20 hover:bg-white/5 backdrop-blur-sm text-white"
+                  className="h-16 px-12 text-xl font-bold uppercase tracking-widest border-border hover:bg-background/5 backdrop-blur-sm text-white"
                 >
                   Get Free Quote
                 </Button>

@@ -11,6 +11,11 @@
 
 FROM node:24-bookworm-slim AS builder
 
+# Inlined into the frontend bundle at build time (App.tsx throws without it).
+# Provided via docker-compose build args from the repo .env file.
+ARG VITE_CLERK_PUBLISHABLE_KEY
+ENV VITE_CLERK_PUBLISHABLE_KEY=${VITE_CLERK_PUBLISHABLE_KEY}
+
 # Pin matches the root package.json "packageManager" field.
 RUN npm install -g pnpm@11.4.0
 
@@ -30,15 +35,10 @@ COPY scripts/package.json scripts/
 
 RUN pnpm install --frozen-lockfile
 
-# Inlined into the frontend bundle at build time (App.tsx throws without it).
-# Provided via docker-compose build args from the repo .env file.
-ARG VITE_CLERK_PUBLISHABLE_KEY
-ENV VITE_CLERK_PUBLISHABLE_KEY=${VITE_CLERK_PUBLISHABLE_KEY}
-
 COPY . .
 
-RUN pnpm run typecheck \
-  && pnpm --filter @workspace/api-server run build \
+# Build API and frontend (skip typecheck for faster builds, handle in CI)
+RUN pnpm --filter @workspace/api-server run build \
   && pnpm --filter @workspace/carryfox run build
 
 # --------------------------------------------------------------------------

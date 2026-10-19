@@ -5,8 +5,10 @@ import {
   CircleAlert, ClipboardList, Euro, FileText, LayoutDashboard, LoaderCircle,
   MapPin, Menu, Pencil, Plus, RefreshCw, Search, ShieldCheck, Truck, Users,
   X, Star, CalendarDays, Trash2, Clock3, PackageCheck, MessageSquareText, Send,
-  Phone, CheckCheck,
+  Phone, CheckCheck, LogOut,
 } from "lucide-react";
+import { useClerk } from "@clerk/react";
+import { useAuth } from "@clerk/react";
 import {
   getListBookingsQueryKey, getListDriversQueryKey, getListQuotesQueryKey,
   getListVehiclesQueryKey, getListWhatsAppConversationsQueryKey,
@@ -629,6 +631,7 @@ function getHttpStatus(error: unknown): number | undefined {
 }
 
 function AccessRecovery({ status, retry }: { status: 401 | 403 | 503; retry: () => void }) {
+  const { signOut } = useClerk();
   const content = status === 503
     ? {
       heading: "Owner access isn’t configured",
@@ -653,7 +656,10 @@ function AccessRecovery({ status, retry }: { status: 401 | 403 | 503; retry: () 
       <h1 className="mt-2 text-2xl font-bold tracking-[-.04em] text-[#292a25]">{content.heading}</h1>
       <p className="mt-3 text-sm leading-6 text-[#706c61]">{content.detail}</p>
       <div className="mt-5 rounded-xl border border-[#eee9df] bg-[#f8f5ef] p-4"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-[#a09a8e]">How to get access</p><p className="mt-2 text-xs leading-5 text-[#5f5d54]">{content.action}</p></div>
-      <div className="mt-5"><ActionButton onClick={retry} variant="quiet" testId="button-retry-admin-access"><RefreshCw className="h-3.5 w-3.5" />Retry access</ActionButton></div>
+      <div className="mt-5 flex gap-3">
+        <ActionButton onClick={retry} variant="quiet" testId="button-retry-admin-access"><RefreshCw className="h-3.5 w-3.5" />Retry access</ActionButton>
+        <ActionButton onClick={() => signOut(() => window.location.href = "/")} variant="quiet" testId="button-sign-out"><LogOut className="h-3.5 w-3.5" />Sign out</ActionButton>
+      </div>
     </section>
   </main>;
 }
@@ -664,7 +670,8 @@ export default function Admin() {
   const [bookingToEdit, setBookingToEdit] = useState<Booking | null>(null);
   const [quoteToEdit, setQuoteToEdit] = useState<Quote | null>(null);
   const [creatingBooking, setCreatingBooking] = useState(false);
-  const [mobileNav, setMobileNav] = useState(false);
+  const [mobileNav, setMobileNav] = useState(true);
+  const { signOut } = useClerk();
   const queryClient = useQueryClient();
   const summaryQuery = useGetDashboardSummary();
   const bookingQuery = useListBookings();
@@ -724,7 +731,18 @@ export default function Admin() {
             <button onClick={() => setMobileNav(current => !current)} aria-label="Toggle navigation" aria-expanded={mobileNav} className="rounded-lg border border-[#e4ded3] bg-[#fffefa] p-2 text-[#5a594f] md:hidden" data-testid="button-mobile-navigation"><Menu className="h-4 w-4" /></button>
             <div><p className="text-[9px] font-bold uppercase tracking-[.18em] text-[#a19b8e]">Carryfox / Operations</p><h1 className="mt-1 text-[21px] font-bold tracking-[-.045em] text-[#292a25] sm:text-[25px]">{pageInfo.name}</h1></div>
           </div>
-          <div className="hidden items-center gap-2 rounded-full border border-[#e6e0d6] bg-[#fffefa] px-3 py-2 text-[10px] font-medium text-[#79766b] sm:flex"><span className="h-1.5 w-1.5 rounded-full bg-[#73936a]" />Operations workspace</div>
+          <div className="flex items-center gap-3">
+            <div className="hidden items-center gap-2 rounded-full border border-[#e6e0d6] bg-[#fffefa] px-3 py-2 text-[10px] font-medium text-[#79766b] sm:flex"><span className="h-1.5 w-1.5 rounded-full bg-[#73936a]" />Operations workspace</div>
+            <button
+              onClick={() => signOut(() => window.location.href = "/")}
+              className="flex items-center gap-2 rounded-lg border border-[#e6e0d6] bg-[#fffefa] px-3 py-2 text-[10px] font-medium text-[#79766b] hover:bg-[#f8f5ef] hover:text-[#b74c25] transition-colors"
+              data-testid="button-admin-sign-out"
+              aria-label="Sign out"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Sign out</span>
+            </button>
+          </div>
         </header>
         {mobileNav && <nav aria-label="Admin navigation" className="mb-5 grid grid-cols-2 gap-2 rounded-xl border border-[#e7e1d6] bg-[#fffefa] p-2 md:hidden">{NAV.map(item => { const Icon = item.icon; return <button key={item.key} onClick={() => selectPage(item.key)} className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs font-semibold ${activePage === item.key ? "bg-[#f8e9df] text-[#b74c25]" : "text-[#777468] hover:bg-[#f6f2ea]"}`} data-testid={`mobile-admin-tab-${item.key}`}><Icon className="h-4 w-4" />{item.name}{counts[item.key] != null && <span className="ml-auto font-mono text-[10px]">{counts[item.key]}</span>}</button>; })}</nav>}
         <motion.div key={activePage} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .2 }}>

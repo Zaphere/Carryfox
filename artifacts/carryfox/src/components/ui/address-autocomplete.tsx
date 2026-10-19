@@ -187,7 +187,7 @@ export function AddressAutocomplete({
             <button
               type="button"
               onClick={clear}
-              className="text-muted-foreground hover:text-white transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors"
               tabIndex={-1}
               aria-label="Clear"
             >
@@ -212,7 +212,7 @@ export function AddressAutocomplete({
                   onMouseEnter={() => setActiveIdx(i)}
                   className={cn(
                     "flex items-start gap-3 px-3 py-2.5 cursor-pointer transition-colors text-sm",
-                    isActive ? "bg-primary/20 text-primary" : "hover:bg-white/5 text-white"
+                    isActive ? "bg-primary/20 text-primary" : "hover:bg-background/5 text-foreground"
                   )}
                   data-testid={`address-suggestion-${i}`}
                 >

@@ -1,0 +1,43 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+# Never run two deploys at once; queue instead of cancelling mid-deploy.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script: |
+            set -e
+            # CHANGE THIS to the folder where the repo lives on your server.
+            cd /opt/carryfox
+
+            # Fast-forward to the pushed commit.
+            git pull --ff-only origin main
+
+            # Rebuild images and restart. DB schema migrations run
+            # automatically here: the api service waits for the `migrate`
+            # one-shot (see docker-compose.yml), so no manual DB steps.
+            docker compose up -d --build
+
+            # Drop dangling layers from previous builds.
+            docker image prune -f
+
+            # Show final state in the workflow log.
+            docker compose ps

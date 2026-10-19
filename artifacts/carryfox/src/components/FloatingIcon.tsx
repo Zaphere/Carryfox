@@ -29,7 +29,7 @@ const CHIPS = [
  * - Gentle floating bob; subtle scale-up on hover, shrink on press.
  * - Clicking opens a chat bubble above it with quick actions (opens upward so
  *   it is never clipped by the bottom of the screen).
- * - Hidden on small screens so it never covers content.
+ * - Responsive sizing: smaller on mobile, larger on desktop.
  */
 export default function FloatingIcon({
   side = "left",
@@ -61,7 +61,7 @@ export default function FloatingIcon({
   return (
     <div
       ref={rootRef}
-      className="pointer-events-none fixed bottom-8 left-0 right-0 z-20 hidden md:block xl:bottom-12"
+      className="pointer-events-none fixed bottom-4 left-0 right-0 z-20 xl:bottom-12"
     >
       <div className={`mx-auto w-full px-4 md:px-6 ${container}`}>
         <div className={`group relative flex w-fit items-end ${side === "right" ? "ml-auto" : "mr-auto"}`}>
@@ -77,14 +77,14 @@ export default function FloatingIcon({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 12, scale: 0.94 }}
                 transition={{ duration: 0.18, ease: "easeOut" }}
-                className={`pointer-events-auto absolute bottom-full mb-3 w-72 rounded-2xl border border-border bg-card/95 p-4 shadow-2xl backdrop-blur ${
+                className={`pointer-events-auto absolute bottom-full mb-3 w-64 rounded-2xl border border-border bg-card/95 p-3 shadow-2xl backdrop-blur md:w-72 md:p-4 ${
                   side === "right" ? "right-0" : "left-0"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm font-bold text-foreground">Hi, I&apos;m Foxey 👋</p>
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    <p className="text-xs font-bold text-foreground md:text-sm">Hi, I&apos;m Foxey 👋</p>
+                    <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground md:text-xs">
                       Need a hand with your move? Pick an option and we&apos;ll take it from there.
                     </p>
                   </div>
@@ -94,7 +94,7 @@ export default function FloatingIcon({
                     aria-label="Close chat"
                     className="-mr-1 -mt-1 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <X className="h-3 w-3 md:h-3.5 md:w-3.5" />
                   </button>
                 </div>
 
@@ -104,10 +104,10 @@ export default function FloatingIcon({
                       key={chip.href}
                       href={chip.href}
                       onClick={() => setOpen(false)}
-                      className="flex items-center justify-between rounded-lg border border-border bg-background/60 px-3 py-2 text-xs font-semibold text-foreground transition-colors hover:border-primary/50 hover:text-primary"
+                      className="flex items-center justify-between rounded-lg border border-border bg-background/60 px-2.5 py-1.5 text-[10px] font-semibold text-foreground transition-colors hover:border-primary/50 hover:text-primary md:px-3 md:py-2 md:text-xs"
                     >
                       {chip.label}
-                      <ArrowRight className="h-3.5 w-3.5" />
+                      <ArrowRight className="h-3 w-3 md:h-3.5 md:w-3.5" />
                     </Link>
                   ))}
                 </div>
@@ -142,7 +142,7 @@ export default function FloatingIcon({
               src={src}
               alt=""
               draggable={false}
-              className="w-20 select-none drop-shadow-[0_12px_30px_rgba(255,100,0,0.25)] xl:w-24"
+              className="w-14 select-none drop-shadow-[0_12px_30px_rgba(255,100,0,0.25)] md:w-20 xl:w-24"
             />
           </motion.button>
         </div>

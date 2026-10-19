@@ -177,7 +177,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.6 }}
-              className="text-lg md:text-xl text-gray-400 mt-8 mb-10 max-w-xl font-light leading-relaxed"
+              className="text-lg md:text-xl text-muted-foreground mt-8 mb-10 max-w-xl font-light leading-relaxed"
             >
               {h.sub}
             </motion.p>
@@ -189,10 +189,10 @@ export default function Home() {
               className="flex flex-col sm:flex-row gap-4"
             >
               <Link href="/quote">
-                <Button size="lg" className="relative h-14 px-8 text-lg font-bold uppercase tracking-wider group overflow-hidden" data-testid="button-hero-quote">
+                <Button size="lg" className="relative h-10 px-4 text-sm font-bold uppercase tracking-wider group overflow-hidden sm:h-14 sm:px-8 sm:text-lg" data-testid="button-hero-quote">
                   <span className="relative z-10 flex items-center gap-2">
                     {h.ctaQuote}
-                    <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1 sm:h-5 sm:w-5" />
                   </span>
                   <motion.span
                     className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
@@ -202,7 +202,7 @@ export default function Home() {
                 </Button>
               </Link>
               <Link href="/track">
-                <Button size="lg" variant="outline" className="h-14 px-8 text-lg font-bold uppercase tracking-wider border-white/25 hover:bg-white/5 backdrop-blur-sm" data-testid="button-hero-track">
+                <Button size="lg" variant="outline" className="h-10 px-4 text-sm font-bold uppercase tracking-wider border-border hover:bg-background/5 backdrop-blur-sm sm:h-14 sm:px-8 sm:text-lg" data-testid="button-hero-track">
                   {h.ctaTrack}
                 </Button>
               </Link>
@@ -270,7 +270,7 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
             {SERVICE_IMGS.map((s, i) => {
               const svc = h.steps[i] ? null : null; // services have their own titles below
               const svcTitles = ["Apartment Moves", "Office Relocation", "Premium Storage", "Furniture Transport"];
@@ -288,7 +288,7 @@ export default function Home() {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.12, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                   whileHover={{ y: -6 }}
-                  className="group relative rounded-2xl border border-white/10 overflow-hidden cursor-default aspect-[3/4]"
+                  className="group relative rounded-2xl border border-border overflow-hidden cursor-default aspect-square"
                 >
                   <img
                     src={s.img}
@@ -299,13 +299,13 @@ export default function Home() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
                   <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/10 transition-all duration-500" />
                   <div className="absolute inset-0 rounded-2xl border-2 border-primary/0 group-hover:border-primary/40 transition-all duration-300" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6">
-                    <h3 className="text-xl font-black text-white uppercase tracking-tight mb-1">{svcTitles[i]}</h3>
-                    <p className="text-sm text-gray-300 leading-relaxed opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                  <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-6">
+                    <h3 className="text-sm font-black text-white uppercase tracking-tight mb-1 sm:text-xl">{svcTitles[i]}</h3>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 sm:text-sm">
                       {svcDescs[i]}
                     </p>
-                    <div className="mt-3 flex items-center gap-1 text-primary text-xs font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-300 delay-75">
-                      {h.servicesLearnMore} <ArrowRight className="h-3 w-3 ml-0.5" />
+                    <div className="mt-2 flex items-center gap-1 text-primary text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-300 delay-75 sm:mt-3 sm:text-xs">
+                      {h.servicesLearnMore} <ArrowRight className="h-2.5 w-2.5 ml-0.5 sm:h-3 sm:w-3" />
                     </div>
                   </div>
                 </motion.div>
@@ -465,22 +465,22 @@ export default function Home() {
                 {h.ctaH2b}
               </span>
             </h2>
-            <p className="text-xl text-gray-400 mb-12 max-w-xl mx-auto">{h.ctaSub}</p>
+            <p className="text-xl text-muted-foreground mb-12 max-w-xl mx-auto">{h.ctaSub}</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/book">
                 <Button
                   size="lg"
-                  className="h-16 px-12 text-xl font-black uppercase tracking-widest shadow-[0_0_40px_rgba(255,90,0,0.35)] hover:shadow-[0_0_60px_rgba(255,90,0,0.55)] transition-all duration-300"
+                  className="h-10 px-4 text-sm font-black uppercase tracking-widest shadow-[0_0_40px_rgba(255,90,0,0.35)] hover:shadow-[0_0_60px_rgba(255,90,0,0.55)] transition-all duration-300 sm:h-16 sm:px-12 sm:text-xl"
                   data-testid="button-cta-book"
                 >
-                  {h.ctaBook} <ArrowRight className="ml-3 h-6 w-6" />
+                  {h.ctaBook} <ArrowRight className="ml-2 h-3.5 w-3.5 sm:ml-3 sm:h-6 sm:w-6" />
                 </Button>
               </Link>
               <Link href="/quote">
                 <Button
                   size="lg"
                   variant="outline"
-                  className="h-16 px-12 text-xl font-bold uppercase tracking-widest border-white/20 hover:bg-white/5 backdrop-blur-sm"
+                  className="h-10 px-4 text-sm font-bold uppercase tracking-widest border-border hover:bg-background/5 backdrop-blur-sm sm:h-16 sm:px-12 sm:text-xl"
                   data-testid="button-cta-quote"
                 >
                   {h.ctaQuote2}
@@ -497,15 +497,15 @@ export default function Home() {
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ delay: 2, duration: 0.5 }}
-          className="fixed bottom-6 right-6 z-50"
+          className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6"
         >
           <Link href="/quote">
             <Button
               size="lg"
-              className="rounded-full shadow-[0_0_30px_rgba(255,90,0,0.4)] hover:shadow-[0_0_50px_rgba(255,90,0,0.6)] h-14 px-6 font-bold uppercase tracking-wider"
+              className="rounded-full shadow-[0_0_30px_rgba(255,90,0,0.4)] hover:shadow-[0_0_50px_rgba(255,90,0,0.6)] h-10 px-3 text-xs font-bold uppercase tracking-wider sm:h-14 sm:px-6 sm:text-base"
               data-testid="button-floating-quote"
             >
-              <Calculator className="h-5 w-5 mr-2" />
+              <Calculator className="h-3.5 w-3.5 mr-1.5 sm:h-5 sm:w-5 sm:mr-2" />
               {h.ctaQuote}
             </Button>
           </Link>

@@ -139,7 +139,7 @@ export default function Quote() {
               <Button size="lg" data-testid="button-post-quote-book">{q.bookNow} <ArrowRight className="ml-2 h-4 w-4" /></Button>
             </Link>
             <Link href="/">
-              <Button size="lg" variant="outline" className="border-white/20">{q.backHome}</Button>
+              <Button size="lg" variant="outline" className="border-border">{q.backHome}</Button>
             </Link>
           </div>
         </motion.div>
@@ -170,12 +170,12 @@ export default function Quote() {
                 <div key={i} className="flex items-center gap-2">
                   <button
                     onClick={() => i < step && setStep(i)}
-                    className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${i === step ? "bg-primary text-white" : i < step ? "bg-primary/30 text-primary cursor-pointer" : "bg-white/10 text-white/40"}`}
+                    className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${i === step ? "bg-primary text-white" : i < step ? "bg-primary/30 text-primary cursor-pointer" : "bg-muted text-muted-foreground/40"}`}
                     data-testid={`step-indicator-${i}`}
                   >
                     {i < step ? <Check className="h-4 w-4" /> : i + 1}
                   </button>
-                  {i < stepLabels.length - 1 && <div className={`h-px w-8 md:w-16 ${i < step ? "bg-primary/50" : "bg-white/10"}`} />}
+                  {i < stepLabels.length - 1 && <div className={`h-px w-8 md:w-16 ${i < step ? "bg-primary/50" : "bg-border"}`} />}
                 </div>
               ))}
               <span className="ml-4 text-sm text-muted-foreground">{stepLabels[step]}</span>
@@ -195,7 +195,7 @@ export default function Quote() {
                                 key={sz}
                                 type="button"
                                 onClick={() => form.setValue("apartmentSize", sz)}
-                                className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${values.apartmentSize === sz ? "border-primary bg-primary/20 text-primary" : "border-white/20 bg-white/5 text-muted-foreground hover:border-white/40"}`}
+                                className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${values.apartmentSize === sz ? "border-primary bg-primary/20 text-primary" : "border-border bg-background/50 text-muted-foreground hover:border-primary/30"}`}
                                 data-testid={`button-size-${sz}`}
                               >
                                 {sz}
@@ -206,25 +206,25 @@ export default function Quote() {
                         <FormField control={form.control} name="rooms" render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{q.rooms}</FormLabel>
-                            <FormControl><Input type="number" min={1} max={20} {...field} className="bg-card border-white/20" data-testid="input-rooms" /></FormControl>
+                            <FormControl><Input type="number" min={1} max={20} {...field} className="bg-card border-border" data-testid="input-rooms" /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
                         <FormField control={form.control} name="floorPickup" render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{q.pickupFloor}</FormLabel>
-                            <FormControl><Input type="number" min={0} max={50} {...field} className="bg-card border-white/20" data-testid="input-floor-pickup" /></FormControl>
+                            <FormControl><Input type="number" min={0} max={50} {...field} className="bg-card border-border" data-testid="input-floor-pickup" /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
                         <FormField control={form.control} name="floorDestination" render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{q.destinationFloor}</FormLabel>
-                            <FormControl><Input type="number" min={0} max={50} {...field} className="bg-card border-white/20" data-testid="input-floor-dest" /></FormControl>
+                            <FormControl><Input type="number" min={0} max={50} {...field} className="bg-card border-border" data-testid="input-floor-dest" /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
-                        <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-card p-4">
+                        <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-4">
                           <input
                             type="checkbox"
                             id="elevator"
@@ -233,7 +233,7 @@ export default function Quote() {
                             className="h-4 w-4 accent-primary"
                             data-testid="checkbox-elevator"
                           />
-                          <label htmlFor="elevator" className="text-sm text-white cursor-pointer">{q.elevator}</label>
+                          <label htmlFor="elevator" className="text-sm text-foreground cursor-pointer">{q.elevator}</label>
                         </div>
                         <FormField control={form.control} name="pickupAddress" render={({ field }) => (
                           <FormItem className="col-span-2">
@@ -243,7 +243,7 @@ export default function Quote() {
                                 value={field.value}
                                 onChange={field.onChange}
                                 placeholder="z.B. Mariahilfer Str. 45, 1060 Wien"
-                                className="bg-card border-white/20"
+                                className="bg-card border-border"
                                 data-testid="input-pickup"
                               />
                             </FormControl>
@@ -258,7 +258,7 @@ export default function Quote() {
                                 value={field.value}
                                 onChange={field.onChange}
                                 placeholder="z.B. Praterstr. 15, 1020 Wien"
-                                className="bg-card border-white/20"
+                                className="bg-card border-border"
                                 data-testid="input-destination"
                               />
                             </FormControl>
@@ -281,7 +281,7 @@ export default function Quote() {
                           ].map(opt => (
                             <label
                               key={opt.key}
-                              className={`flex items-center justify-between rounded-lg border p-4 cursor-pointer transition-all ${values[opt.key as keyof FormData] ? "border-primary/50 bg-primary/10" : "border-white/10 bg-card hover:border-white/20"}`}
+                              className={`flex items-center justify-between rounded-lg border p-4 cursor-pointer transition-all ${values[opt.key as keyof FormData] ? "border-primary/50 bg-primary/10" : "border-border bg-card hover:border-primary/20"}`}
                               data-testid={`toggle-${opt.key}`}
                             >
                               <div className="flex items-center gap-3">
@@ -308,10 +308,10 @@ export default function Quote() {
                                 key={key}
                                 type="button"
                                 onClick={() => form.setValue("urgencyLevel", key)}
-                                className={`rounded-lg border p-4 text-left transition-all ${values.urgencyLevel === key ? "border-primary bg-primary/20" : "border-white/10 bg-card hover:border-white/20"}`}
+                                className={`rounded-lg border p-4 text-left transition-all ${values.urgencyLevel === key ? "border-primary bg-primary/20" : "border-border bg-card hover:border-primary/20"}`}
                                 data-testid={`button-urgency-${key}`}
                               >
-                                <p className={`font-bold text-sm mb-1 ${values.urgencyLevel === key ? "text-primary" : "text-white"}`}>{opt.label}</p>
+                                <p className={`font-bold text-sm mb-1 ${values.urgencyLevel === key ? "text-primary" : "text-foreground"}`}>{opt.label}</p>
                                 <p className="text-xs text-muted-foreground">{opt.desc}</p>
                               </button>
                             );
@@ -321,7 +321,7 @@ export default function Quote() {
                       <FormField control={form.control} name="notes" render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{q.notes}</FormLabel>
-                          <FormControl><Input placeholder={q.notesPlaceholder} {...field} className="bg-card border-white/20" data-testid="input-notes" /></FormControl>
+                          <FormControl><Input placeholder={q.notesPlaceholder} {...field} className="bg-card border-border" data-testid="input-notes" /></FormControl>
                         </FormItem>
                       )} />
                     </motion.div>
@@ -332,21 +332,21 @@ export default function Quote() {
                       <FormField control={form.control} name="customerName" render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{q.fullName}</FormLabel>
-                          <FormControl><Input placeholder="Max Mustermann" {...field} className="bg-card border-white/20" data-testid="input-name" /></FormControl>
+                          <FormControl><Input placeholder="Max Mustermann" {...field} className="bg-card border-border" data-testid="input-name" /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
                       <FormField control={form.control} name="customerEmail" render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{q.email}</FormLabel>
-                          <FormControl><Input type="email" placeholder="max@email.at" {...field} className="bg-card border-white/20" data-testid="input-email" /></FormControl>
+                          <FormControl><Input type="email" placeholder="max@email.at" {...field} className="bg-card border-border" data-testid="input-email" /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
                       <FormField control={form.control} name="customerPhone" render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{q.phone}</FormLabel>
-                          <FormControl><Input type="tel" placeholder="+43 676 123 4567" {...field} className="bg-card border-white/20" data-testid="input-phone" /></FormControl>
+                          <FormControl><Input type="tel" placeholder="+43 676 123 4567" {...field} className="bg-card border-border" data-testid="input-phone" /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
@@ -356,7 +356,7 @@ export default function Quote() {
 
                 <div className="flex gap-3 mt-8">
                   {step > 0 && (
-                    <Button type="button" variant="outline" className="border-white/20" onClick={() => setStep(s => s - 1)} data-testid="button-prev-step">
+                    <Button type="button" variant="outline" className="border-border" onClick={() => setStep(s => s - 1)} data-testid="button-prev-step">
                       <ArrowLeft className="h-4 w-4 mr-2" /> {q.back}
                     </Button>
                   )}
@@ -392,26 +392,26 @@ export default function Quote() {
               </motion.p>
               <p className="text-xs text-muted-foreground mb-6">{q.finalNote}</p>
 
-              <div className="space-y-4 border-t border-white/10 pt-4">
+              <div className="space-y-4 border-t border-border pt-4">
                 <div className="flex items-center gap-3">
                   <Truck className="h-5 w-5 text-primary" />
                   <div>
                     <p className="text-xs text-muted-foreground">{q.vehicle}</p>
-                    <p className="text-sm font-semibold text-white">{truck.icon} {truck.label}</p>
+                    <p className="text-sm font-semibold text-foreground">{truck.icon} {truck.label}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Users className="h-5 w-5 text-primary" />
                   <div>
                     <p className="text-xs text-muted-foreground">{q.crewSize}</p>
-                    <p className="text-sm font-semibold text-white">{crew} {q.professionals}</p>
+                    <p className="text-sm font-semibold text-foreground">{crew} {q.professionals}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Clock className="h-5 w-5 text-primary" />
                   <div>
                     <p className="text-xs text-muted-foreground">{q.urgencyLabel}</p>
-                    <p className="text-sm font-semibold text-white capitalize">{values.urgencyLevel}</p>
+                    <p className="text-sm font-semibold text-foreground capitalize">{values.urgencyLevel}</p>
                   </div>
                 </div>
                 {(values.needsPacking || values.needsAssembly || values.needsStorage) && (
@@ -419,7 +419,7 @@ export default function Quote() {
                     <Package className="h-5 w-5 text-primary mt-0.5" />
                     <div>
                       <p className="text-xs text-muted-foreground">Add-ons</p>
-                      <p className="text-sm font-semibold text-white">
+                      <p className="text-sm font-semibold text-foreground">
                         {[values.needsPacking && q.needsPacking, values.needsAssembly && q.needsAssembly, values.needsStorage && q.needsStorage].filter(Boolean).join(", ")}
                       </p>
                     </div>

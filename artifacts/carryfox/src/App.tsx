@@ -234,6 +234,16 @@ function ClerkApp() {
       signUpUrl={`${basePath}/sign-up`}
       signInFallbackRedirectUrl={`${basePath}/admin`}
       signUpFallbackRedirectUrl={`${basePath}/admin`}
+      signInOptions={{
+        phoneNumber: {
+          enabled: false,
+        },
+      }}
+      signUpOptions={{
+        phoneNumber: {
+          enabled: false,
+        },
+      }}
       localization={{
         signIn: {
           start: {

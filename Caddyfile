@@ -5,7 +5,7 @@
 #   SITE_ADDRESS=example.com automatic HTTPS via Let's Encrypt (80 + 443 open)
 
 {$SITE_ADDRESS} {
-	root * /site
+	root * /site/public
 	encode gzip
 
 	# Vite's hashed build assets are safe to cache forever.

@@ -135,7 +135,7 @@ export default function Book() {
             <button
               type="button"
               onClick={copyReference}
-              className="mx-auto flex items-center gap-3 rounded-lg px-3 py-1 transition-colors hover:bg-white/5"
+              className="mx-auto flex items-center gap-3 rounded-lg px-3 py-1 transition-colors hover:bg-background/5"
               data-testid="button-copy-reference"
               title="Copy reference"
             >
@@ -157,7 +157,7 @@ export default function Book() {
               <Button size="lg" data-testid="button-post-booking-track">{b.trackBooking} <ArrowRight className="ml-2 h-4 w-4" /></Button>
             </Link>
             <Link href="/">
-              <Button size="lg" variant="outline" className="border-white/20">{b.backHome}</Button>
+              <Button size="lg" variant="outline" className="border-border">{b.backHome}</Button>
             </Link>
           </div>
         </motion.div>
@@ -183,16 +183,16 @@ export default function Book() {
         <div className="flex items-center gap-2 mb-8">
           {stepLabels.map((s, i) => (
             <div key={i} className="flex items-center gap-2">
-              <div className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${i === step ? "bg-primary text-white" : i < step ? "bg-primary/30 text-primary" : "bg-white/10 text-white/40"}`}>
+              <div className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${i === step ? "bg-primary text-white" : i < step ? "bg-primary/30 text-primary" : "bg-muted text-muted-foreground/40"}`}>
                 {i < step ? <Check className="h-4 w-4" /> : i + 1}
               </div>
-              {i < stepLabels.length - 1 && <div className={`h-px w-12 md:w-20 ${i < step ? "bg-primary/50" : "bg-white/10"}`} />}
+              {i < stepLabels.length - 1 && <div className={`h-px w-12 md:w-20 ${i < step ? "bg-primary/50" : "bg-border"}`} />}
             </div>
           ))}
           <span className="ml-4 text-sm text-muted-foreground">{stepLabels[step]}</span>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-card p-6 md:p-8">
+        <div className="rounded-xl border border-border bg-card p-6 md:p-8">
           <Form {...form}>
             <form onSubmit={onSubmit}>
               <AnimatePresence mode="wait">
@@ -206,10 +206,10 @@ export default function Book() {
                           key={s.key}
                           type="button"
                           onClick={() => form.setValue("serviceType", s.key)}
-                          className={`text-left rounded-xl border p-4 transition-all ${values.serviceType === s.key ? "border-primary bg-primary/20" : "border-white/10 bg-background/50 hover:border-white/30"}`}
+                          className={`text-left rounded-xl border p-4 transition-all ${values.serviceType === s.key ? "border-primary bg-primary/20" : "border-border bg-background/50 hover:border-primary/30"}`}
                           data-testid={`button-service-${s.key}`}
                         >
-                          <p className={`font-bold text-sm mb-1 ${values.serviceType === s.key ? "text-primary" : "text-white"}`}>{s.label}</p>
+                          <p className={`font-bold text-sm mb-1 ${values.serviceType === s.key ? "text-primary" : "text-foreground"}`}>{s.label}</p>
                           <p className="text-primary font-black">€{s.price}<span className="text-xs font-normal text-muted-foreground">/from</span></p>
                         </button>
                       ))}
@@ -235,8 +235,7 @@ export default function Book() {
                                 const time = field.value?.split("T")[1] ?? "09:00";
                                 field.onChange(e.target.value ? `${e.target.value}T${time}` : "");
                               }}
-                              className="flex h-10 w-full rounded-md border border-white/20 bg-background/50 px-3 py-2 text-sm text-white ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                              style={{ colorScheme: "dark" }}
+                              className="flex h-10 w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                               data-testid="input-date"
                             />
                             <input
@@ -247,8 +246,7 @@ export default function Book() {
                                 // Ignore a cleared/partial time so we never write "2026-10-16T" (invalid).
                                 if (date && e.target.value) field.onChange(`${date}T${e.target.value}`);
                               }}
-                              className="flex h-10 w-full rounded-md border border-white/20 bg-background/50 px-3 py-2 text-sm text-white ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                              style={{ colorScheme: "dark" }}
+                              className="flex h-10 w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                               data-testid="input-time"
                             />
                           </div>
@@ -265,7 +263,7 @@ export default function Book() {
                             onChange={field.onChange}
                             onCoords={setPickupCoords}
                             placeholder="z.B. Mariahilfer Str. 45, 1060 Wien"
-                            className="bg-background/50 border-white/20"
+                            className="bg-background/50 border-border"
                             data-testid="input-pickup"
                           />
                         </FormControl>
@@ -281,7 +279,7 @@ export default function Book() {
                             onChange={field.onChange}
                             onCoords={setDestinationCoords}
                             placeholder="z.B. Praterstr. 15, 1020 Wien"
-                            className="bg-background/50 border-white/20"
+                            className="bg-background/50 border-border"
                             data-testid="input-destination"
                           />
                         </FormControl>
@@ -291,7 +289,7 @@ export default function Book() {
                     <FormField control={form.control} name="notes" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{b.notes}</FormLabel>
-                        <FormControl><Input placeholder={b.notesPlaceholder} {...field} className="bg-background/50 border-white/20" data-testid="input-notes" /></FormControl>
+                        <FormControl><Input placeholder={b.notesPlaceholder} {...field} className="bg-background/50 border-border" data-testid="input-notes" /></FormControl>
                       </FormItem>
                     )} />
                   </motion.div>
@@ -302,21 +300,21 @@ export default function Book() {
                     <FormField control={form.control} name="customerName" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{b.fullName}</FormLabel>
-                        <FormControl><Input placeholder="Max Mustermann" {...field} className="bg-background/50 border-white/20" data-testid="input-name" /></FormControl>
+                        <FormControl><Input placeholder="Max Mustermann" {...field} className="bg-background/50 border-border" data-testid="input-name" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
                     <FormField control={form.control} name="customerEmail" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{b.email}</FormLabel>
-                        <FormControl><Input type="email" placeholder="max@email.at" {...field} className="bg-background/50 border-white/20" data-testid="input-email" /></FormControl>
+                        <FormControl><Input type="email" placeholder="max@email.at" {...field} className="bg-background/50 border-border" data-testid="input-email" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
                     <FormField control={form.control} name="customerPhone" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">{b.phone}</FormLabel>
-                        <FormControl><Input type="tel" placeholder="+43 676 123 4567" {...field} className="bg-background/50 border-white/20" data-testid="input-phone" /></FormControl>
+                        <FormControl><Input type="tel" placeholder="+43 676 123 4567" {...field} className="bg-background/50 border-border" data-testid="input-phone" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
@@ -325,7 +323,7 @@ export default function Book() {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between"><span className="text-muted-foreground">{b.service}</span><span className="text-white font-semibold">{selectedService?.label}</span></div>
                         <div className="flex justify-between"><span className="text-muted-foreground">{b.date}</span><span className="text-white">{values.scheduledDate ? new Date(values.scheduledDate).toLocaleDateString("de-AT") : "–"}</span></div>
-                        <div className="flex justify-between border-t border-white/10 pt-2 font-bold"><span className="text-muted-foreground">Total</span><span className="text-primary text-lg">€{selectedService?.price}</span></div>
+                        <div className="flex justify-between border-t border-border pt-2 font-bold"><span className="text-muted-foreground">Total</span><span className="text-primary text-lg">€{selectedService?.price}</span></div>
                       </div>
                     </div>
                   </motion.div>
@@ -334,7 +332,7 @@ export default function Book() {
 
               <div className="flex gap-3 mt-8">
                 {step > 0 && (
-                  <Button type="button" variant="outline" className="border-white/20" onClick={() => setStep(s => s - 1)} data-testid="button-prev-step">
+                  <Button type="button" variant="outline" className="border-border" onClick={() => setStep(s => s - 1)} data-testid="button-prev-step">
                     <ArrowLeft className="h-4 w-4 mr-2" /> {b.back}
                   </Button>
                 )}

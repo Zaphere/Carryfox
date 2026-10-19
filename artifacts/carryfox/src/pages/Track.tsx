@@ -447,7 +447,7 @@ export default function Track() {
                         <Marker position={pickupCoords} icon={pickupIcon}>
                           <Popup>
                             <div className="text-sm font-semibold">📦 {tr.mapLegend.pickup}</div>
-                            <div className="text-xs text-gray-600 mt-0.5">{tracking.pickupAddress}</div>
+                            <div className="text-xs text-muted-foreground mt-0.5">{tracking.pickupAddress}</div>
                           </Popup>
                         </Marker>
                       )}
@@ -455,14 +455,14 @@ export default function Track() {
                         <Marker position={destCoords} icon={destIcon}>
                           <Popup>
                             <div className="text-sm font-semibold">🏁 {tr.mapLegend.destination}</div>
-                            <div className="text-xs text-gray-600 mt-0.5">{tracking.destinationAddress}</div>
+                            <div className="text-xs text-muted-foreground mt-0.5">{tracking.destinationAddress}</div>
                           </Popup>
                         </Marker>
                       )}
                       <Marker position={truckPos} icon={truckIcon}>
                         <Popup>
                           <div className="text-sm font-semibold">🚛 {tracking.driverName}</div>
-                          <div className="text-xs text-gray-600">{tracking.vehiclePlate} · {tracking.currentSpeed} km/h</div>
+                          <div className="text-xs text-muted-foreground">{tracking.vehiclePlate} · {tracking.currentSpeed} km/h</div>
                         </Popup>
                       </Marker>
                     </MapContainer>
