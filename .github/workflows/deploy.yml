@@ -25,8 +25,8 @@ jobs:
           port: ${{ secrets.SERVER_PORT || 22 }}
           script: |
             set -e
-            # CHANGE THIS to the folder where the repo lives on your server.
-            cd /opt/carryfox
+            # Repo location on the server.
+            cd ~/Code-Augmented-Systems/AGS/projects/Carryfox
 
             # Fast-forward to the pushed commit.
             git pull --ff-only origin main

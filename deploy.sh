@@ -15,7 +15,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-APP_DIR="/opt/carryfox"  # CHANGE THIS to the folder where the repo lives on your server
+APP_DIR="$HOME/Code-Augmented-Systems/AGS/projects/Carryfox"  # Repo folder on the server
 BACKUP_DIR="$APP_DIR/backups"
 ENV_FILE="$APP_DIR/.env"
 
